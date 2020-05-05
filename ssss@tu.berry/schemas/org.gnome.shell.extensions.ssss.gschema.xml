@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="gnome-shell-extensions-ss-subcriber">
+    <schema path="/org/gnome/shell/extensions/ss-subscriber/" id="org.gnome.shell.extensions.ss-subscriber">
+        <key type="s" name="subscribe-cache">
+            <default>""</default>
+            <summary>subscription cache</summary>
+        </key>
+        <key type="s" name="subscribe-link">
+            <default>""</default>
+            <summary>link of subscribing</summary>
+        </key>
+        <key type="s" name="server-remarks">
+            <default>""</default>
+            <summary>current server name</summary>
+        </key>
+        <key type="s" name="addtional-config">
+            <default>""</default>
+            <summary>additional configs</summary>
+        </key>
+        <key type="u" name="max-length">
+            <default>0</default>
+            <summary>max length for menu item</summary>
+        </key>
+    </schema>
+</schemalist>

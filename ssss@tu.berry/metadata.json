@@ -1,0 +1,10 @@
+{
+  "name": "SS Subscriber",
+  "gettext-domain": "ss-subscriber",
+  "settings-schema": "org.gnome.shell.extensions.ss-subscriber",
+  "description": "Simple shadowsocks subscriber, yet another proxy switcher.",
+  "uuid": "ssss@tu.berry",
+  "shell-version": [
+    "3.36"
+  ]
+}
