@@ -2,8 +2,9 @@
   "name": "SS Subscriber",
   "gettext-domain": "ss-subscriber",
   "settings-schema": "org.gnome.shell.extensions.ss-subscriber",
-  "description": "Simple shadowsocks subscriber, yet another proxy switcher.",
+  "description": "Simple shadowsocks subscriber (SSD only), yet another proxy switcher for gnome shell.",
   "uuid": "ssss@tu.berry",
+  "url": "https://github.com/tuberry/ss-subscriber",
   "shell-version": [
     "3.36"
   ]

@@ -11,20 +11,12 @@ const gsettings = ExtensionUtils.getSettings();
 
 var Fields = {
     PROXYMODE:  'mode',
-    MAXLENGTH:  'max-length',
+    INDICATOR:  'indicator-text',
     SERVERNAME: 'server-remarks',
     SUBSLINK:   'subscribe-link',
     SUBSCACHE:  'subscribe-cache',
     ADDITIONAL: 'addtional-config',
 };
-
-function buildPrefsWidget() {
-    return new SSSubscriber();
-}
-
-function init() {
-    ExtensionUtils.initTranslations();
-}
 
 const SSSubscriber = GObject.registerClass(
 class SSSubscriber extends Gtk.Grid {
@@ -44,22 +36,22 @@ class SSSubscriber extends Gtk.Grid {
     }
 
     _bulidWidget() {
-        this._field_max_length = this._spinMaker(0, 1000, 100);
+        this._field_indicator = this._entryMaker('SS', _('Unicode is acceptable, eg: \\uf123.'));
         this._field_subs_link = this._entryMaker('www.example.com', _('Subscription link (SSD only)'));
         this._field_additional = this._entryMaker('{"local_port": 1874, "fast_open": true}', _('Local config (JSON format)'));
     }
 
     _bulidUI() {
         this._row = 0;
-        this._rowMaker(this._labelMaker(_('Max length of menu item')), this._field_max_length);
+        this._rowMaker(this._labelMaker(_('Indicator text')), this._field_indicator);
         this._rowMaker(this._field_subs_link);
         this._rowMaker(this._field_additional);
     }
 
     _bindValues() {
-        gsettings.bind(Fields.MAXLENGTH,  this._field_max_length, 'value', Gio.SettingsBindFlags.DEFAULT);
-        gsettings.bind(Fields.SUBSLINK,   this._field_subs_link,  'text',  Gio.SettingsBindFlags.DEFAULT);
-        gsettings.bind(Fields.ADDITIONAL, this._field_additional, 'text',  Gio.SettingsBindFlags.DEFAULT);
+        gsettings.bind(Fields.SUBSLINK,   this._field_subs_link,  'text',   Gio.SettingsBindFlags.DEFAULT);
+        gsettings.bind(Fields.ADDITIONAL, this._field_additional, 'text',   Gio.SettingsBindFlags.DEFAULT);
+        gsettings.bind(Fields.INDICATOR,  this._field_indicator,  'text',   Gio.SettingsBindFlags.DEFAULT);
     }
 
     _rowMaker(x, y, z) {
@@ -79,7 +71,6 @@ class SSSubscriber extends Gtk.Grid {
 
     _entryMaker(x, y) {
         return new Gtk.Entry({
-            hexpand: true,
             placeholder_text: x,
             secondary_icon_sensitive: true,
             secondary_icon_tooltip_text: y,
@@ -107,4 +98,12 @@ class SSSubscriber extends Gtk.Grid {
         });
     }
 });
+
+function buildPrefsWidget() {
+    return new SSSubscriber();
+}
+
+function init() {
+    ExtensionUtils.initTranslations();
+}
 

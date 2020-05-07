@@ -17,9 +17,9 @@
             <default>""</default>
             <summary>additional configs</summary>
         </key>
-        <key type="u" name="max-length">
-            <default>0</default>
-            <summary>max length for menu item</summary>
+        <key type="s" name="indicator-text">
+            <default>""</default>
+            <summary>indicator text</summary>
         </key>
     </schema>
 </schemalist>

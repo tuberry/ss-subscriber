@@ -6,6 +6,8 @@ Simple shadowsocks subscriber (SSD only), yet another proxy switcher for gnome s
 
 <br>
 
+![image](https://user-images.githubusercontent.com/17917040/81277066-76b7dd00-9086-11ea-953e-af4236c17ee7.png)
+
 ## Installation
 ```shell
 git clone git@github.com:tuberry/ss-subscriber.git
@@ -28,11 +30,9 @@ sudo mv /tmp/ssss.json /etc/shadowsocks/
 sudo systemctl enable shadowsocks-libev@ssss.service # ignore the output
 ```
 #### fill blanks
-![image](https://user-images.githubusercontent.com/17917040/81079385-13ad3580-8f22-11ea-991f-ac6042ee9eee.png)
+![image](https://user-images.githubusercontent.com/17917040/81277650-46247300-9087-11ea-8108-e0a686dabae6.png)
 
 then enable it and wait for sync.
-
-![image](https://user-images.githubusercontent.com/17917040/81082140-76540080-8f25-11ea-8304-a79231161d02.png)
 
 ## Acknowledgements
 * [proxy-switcher](https://github.com/tomflannaghan/proxy-switcher): network setting button

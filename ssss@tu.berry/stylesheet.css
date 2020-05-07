@@ -1,1 +1,20 @@
 /* Add your custom extension styling here */
+.ss-subscriber-item {
+    /* max-width: 200px; */
+}
+
+.ss-subscriber-text {
+    padding-top: 6px; /* fix the Font-Awesome fa-paper-plane vertical align */
+}
+
+.ss-subscriber-text-none {
+    color: none;
+}
+
+.ss-subscriber-text-auto {
+    color: turquoise;
+}
+
+.ss-subscriber-text-manual {
+    color: pink;
+}
