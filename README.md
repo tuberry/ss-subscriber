@@ -14,22 +14,18 @@ git clone git@github.com:tuberry/ss-subscriber.git
 cp -r ./ss-subscriber/ssss@tu.berry ~/.local/share/gnome-shell/extensions/
 ```
 ## Usage
-### Dependencies
-0. `sudo`: root privilege;
-1. `systemd`: provide `systemctl`;
-2. `curl`: fetch the subscriptions;
-3. `shadowsocks-libev`: provide `ss-local`.
-### Configuration
-#### config file
+### dependencies
+1. `shadowsocks-libev`: provide `ss-local`.
+### config file
 ```
 touch /tmp/ssss.json # readable and writable
 sudo mv /tmp/ssss.json /etc/shadowsocks/
 ```
-#### enable service
+### enable service
 ```
 sudo systemctl enable shadowsocks-libev@ssss.service # ignore the output
 ```
-#### fill blanks
+### fill blanks
 ![image](https://user-images.githubusercontent.com/17917040/81277650-46247300-9087-11ea-8108-e0a686dabae6.png)
 
 then enable it and wait for sync.

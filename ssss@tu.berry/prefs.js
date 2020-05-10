@@ -11,6 +11,7 @@ const gsettings = ExtensionUtils.getSettings();
 
 var Fields = {
     PROXYMODE:  'mode',
+    HIDETEXT:   'hide-indicator',
     INDICATOR:  'indicator-text',
     SERVERNAME: 'server-remarks',
     SUBSLINK:   'subscribe-link',
@@ -36,22 +37,25 @@ class SSSubscriber extends Gtk.Grid {
     }
 
     _bulidWidget() {
-        this._field_indicator = this._entryMaker('SS', _('Unicode is acceptable, eg: \\uf123.'));
-        this._field_subs_link = this._entryMaker('www.example.com', _('Subscription link (SSD only)'));
+        this._field_hide_text  = new Gtk.Switch();
+        this._field_indicator  = this._entryMaker('SS', _('Unicode is acceptable, eg: \\uf123.'));
+        this._field_subs_link  = this._entryMaker('https://www.example.com', _('Subscription link (SSD only)'));
         this._field_additional = this._entryMaker('{"local_port": 1874, "fast_open": true}', _('Local config (JSON format)'));
     }
 
     _bulidUI() {
         this._row = 0;
+        this._rowMaker(this._labelMaker(_('Hide indicator')), this._field_hide_text);
         this._rowMaker(this._labelMaker(_('Indicator text')), this._field_indicator);
         this._rowMaker(this._field_subs_link);
         this._rowMaker(this._field_additional);
     }
 
     _bindValues() {
-        gsettings.bind(Fields.SUBSLINK,   this._field_subs_link,  'text',   Gio.SettingsBindFlags.DEFAULT);
         gsettings.bind(Fields.ADDITIONAL, this._field_additional, 'text',   Gio.SettingsBindFlags.DEFAULT);
+        gsettings.bind(Fields.HIDETEXT,   this._field_hide_text,  'active', Gio.SettingsBindFlags.DEFAULT);
         gsettings.bind(Fields.INDICATOR,  this._field_indicator,  'text',   Gio.SettingsBindFlags.DEFAULT);
+        gsettings.bind(Fields.SUBSLINK,   this._field_subs_link,  'text',   Gio.SettingsBindFlags.DEFAULT);
     }
 
     _rowMaker(x, y, z) {
