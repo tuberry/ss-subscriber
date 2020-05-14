@@ -67,14 +67,14 @@ class Shadowsocks extends GObject.Object {
         Soup.Session.prototype.add_feature.call(session, new Soup.ProxyResolverDefault());
         let uri = new Soup.URI(this._subslink);
         let request = Soup.Message.new_from_uri('GET', uri);
-        session.queue_message(request, ((session, message) => {
+        session.queue_message(request, (session, message) => {
             if (message.status_code == 200) {
                 this._parseSSD(message.response_body.data.trim());
                 Main.notify(Me.metadata.name, _('Synchronized successfully.'));
             } else {
                 Main.notifyError(Me.metadata.name, `Error: %s status code %d`.format(uri.scheme.toUpperCase(), message.status_code));
             }
-        }));
+        });
     }
 
     _parseSSD(link) {
@@ -92,7 +92,7 @@ class Shadowsocks extends GObject.Object {
         this._button = new PanelMenu.Button(null);
         this._text = new St.Label({ text: txt, style_class: `ss-subscriber-text-${this._proxymode} ss-subscriber-text` });
         this._button.add_actor(this._text);
-        Main.panel.addToStatusArea('ssrs@tu.berry', this._button);
+        Main.panel.addToStatusArea('ssss@tu.berry', this._button);
         gsettings.get_boolean(Fields.HIDETEXT) ? this._button.hide() : this._button.show();
         this._updateMenu();
     }

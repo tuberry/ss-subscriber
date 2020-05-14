@@ -6,14 +6,18 @@ Simple shadowsocks subscriber (SSD only), yet another proxy switcher for gnome s
 
 <br>
 
-![image](https://user-images.githubusercontent.com/17917040/81277066-76b7dd00-9086-11ea-953e-af4236c17ee7.png)
-
 ## Installation
+[<img src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=true" alt="Get it on GNOME Extensions" height="100" align="middle">][EGO]
+
+Or manually:
 ```shell
 git clone git@github.com:tuberry/ss-subscriber.git
 cp -r ./ss-subscriber/ssss@tu.berry ~/.local/share/gnome-shell/extensions/
 ```
 ## Usage
+
+![image](https://user-images.githubusercontent.com/17917040/81277066-76b7dd00-9086-11ea-953e-af4236c17ee7.png)
+
 ### dependencies
 1. `shadowsocks-libev`: provide `ss-local`.
 ### config file
@@ -39,4 +43,4 @@ then enable it and wait for sync.
 1. NO feature request.
 
 [license]:https://img.shields.io/badge/license-GPLv3-green.svg
-
+[EGO]:https://extensions.gnome.org/extension/3073/ss-subscriber/
