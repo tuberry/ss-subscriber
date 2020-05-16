@@ -1,7 +1,7 @@
 # ss-subscriber
 Simple shadowsocks subscriber (SSD only), yet another proxy switcher for gnome shell.
 
-> 情人若寂寥地出生在1874 / 刚刚早一百年一个世纪 / 是否终身都这样顽强地等 / 雨季会降临赤地 —— *《1874》*<br>
+> data **提问的智慧** = 别问 | 问就是**提问的智慧**<br>
 [![license]](/LICENSE)
 
 <br>
@@ -31,8 +31,6 @@ sudo systemctl enable shadowsocks-libev@ssss.service # ignore the output
 ```
 ### fill blanks
 ![image](https://user-images.githubusercontent.com/17917040/81277650-46247300-9087-11ea-8108-e0a686dabae6.png)
-
-then enable it and wait for sync.
 
 ## Acknowledgements
 * [proxy-switcher](https://github.com/tomflannaghan/proxy-switcher): network setting button

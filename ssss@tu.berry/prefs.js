@@ -38,7 +38,7 @@ class SSSubscriber extends Gtk.Grid {
 
     _bulidWidget() {
         this._field_hide_text  = new Gtk.Switch();
-        this._field_indicator  = this._entryMaker('SS', _('Unicode is acceptable, eg: \\uf123.'));
+        this._field_indicator  = this._entryMaker('\uf084', _('Unicode is acceptable, eg: \\uf123.'));
         this._field_subs_link  = this._entryMaker('https://www.example.com', _('Subscription link (SSD only)'));
         this._field_additional = this._entryMaker('{"local_port": 1874, "fast_open": true}', _('Local config (JSON format)'));
     }

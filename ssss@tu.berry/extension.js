@@ -1,11 +1,12 @@
 // vim:fdm=syntax
 // by tuberry
 //
-const Main = imports.ui.main
+const Main = imports.ui.main;
+const Util = imports.misc.util;
 const ByteArray = imports.byteArray;
-const PanelMenu = imports.ui.panelMenu
-const PopupMenu = imports.ui.popupMenu
-const { GLib, GObject, Soup, Gio, St } = imports.gi
+const PanelMenu = imports.ui.panelMenu;
+const PopupMenu = imports.ui.popupMenu;
+const { GLib, GObject, Soup, Gio, St } = imports.gi;
 
 const proxyGsettings = new Gio.Settings({ schema_id: 'org.gnome.system.proxy' });
 const ExtensionUtils = imports.misc.extensionUtils;
@@ -26,7 +27,6 @@ class Shadowsocks extends GObject.Object {
     _loadSettings() {
         this._fetchSettings();
         this._addButton(this._indicator ? unicode(this._indicator) : '\uF1D8');
-        this._launcher     = new Gio.SubprocessLauncher({ flags: Gio.SubprocessFlags.NONE });
         this._subslinkId   = gsettings.connect(`changed::${Fields.SUBSLINK}`, () => this._subslink = gsettings.get_uint(Fields.SUBSLINK));
         this._additionalId = gsettings.connect(`changed::${Fields.ADDITIONAL}`, () => this._additional = gsettings.get_uint(Fields.ADDITIONAL));
         this._proxymodeID  = proxyGsettings.connect(`changed::${Fields.PROXYMODE}`, () => this._changeMode(proxyGsettings.get_string(Fields.PROXYMODE)));
@@ -51,7 +51,6 @@ class Shadowsocks extends GObject.Object {
             if(RegExp(/^_.+Id$/).test(x)) eval(`if(this.%s) gsettings.disconnect(this.%s), this.%s = 0;`.format(x, x, x));
         if(this._proxymodeID)
             proxyGsettings.disconnect(this._proxymodeID), this._proxymodeID = 0;
-        this._launcher = null;
         this._text.destroy();
         this._button.destroy();
     }
@@ -92,7 +91,7 @@ class Shadowsocks extends GObject.Object {
         this._button = new PanelMenu.Button(null);
         this._text = new St.Label({ text: txt, style_class: `ss-subscriber-text-${this._proxymode} ss-subscriber-text` });
         this._button.add_actor(this._text);
-        Main.panel.addToStatusArea('ssss@tu.berry', this._button);
+        Main.panel.addToStatusArea(Me.metadata.uuid, this._button);
         gsettings.get_boolean(Fields.HIDETEXT) ? this._button.hide() : this._button.show();
         this._updateMenu();
     }
@@ -120,12 +119,12 @@ class Shadowsocks extends GObject.Object {
                 if(x.remarks === this._servername) {
                     item.setOrnament(PopupMenu.Ornament.DOT);
                 } else {
-                   item.connect("button_press_event", () => this._genConfig(x));
+                   item.connect("button-press-event", () => this._genConfig(x));
                 }
                 servers.menu.addMenuItem(item);
             });
             let sync = new PopupMenu.PopupMenuItem(_("Sync Subscription"));
-            sync.connect("button_press_event", () => this._syncSubscribe());
+            sync.connect("button-press-event", () => this._syncSubscribe());
             this._button.menu.addMenuItem(sync);
         }
 
@@ -135,7 +134,7 @@ class Shadowsocks extends GObject.Object {
             if(x === this._proxymode) {
                 item.setOrnament(PopupMenu.Ornament.DOT);
             } else {
-                item.connect("button_press_event", () => this._changeMode(x));
+                item.connect("button-press-event", () => this._changeMode(x));
             }
             proxy.menu.addMenuItem(item);
         }
@@ -145,7 +144,7 @@ class Shadowsocks extends GObject.Object {
         this._button.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem(''));
 
         let setting = new PopupMenu.PopupMenuItem(_("Settings"));
-        setting.connect("button_press_event", () => { this._launcher.spawnv(['gnome-extensions', 'prefs', 'ssss@tu.berry']); });
+        setting.connect("button-press-event", () => { ExtensionUtils.openPrefs(); });
         this._button.menu.addMenuItem(setting);
     }
 
@@ -169,7 +168,7 @@ class Shadowsocks extends GObject.Object {
         try {
             let file = Gio.File.new_for_path('/etc/shadowsocks/ssss.json');
             file.replace_contents(JSON.stringify(conf, null, 2), null, false, Gio.FileCreateFlags.PRIVATE, null);
-            this._launcher.spawnv(['systemctl', 'restart', 'shadowsocks-libev@ssss.service']);
+            Util.spawn(['systemctl', 'restart', 'shadowsocks-libev@ssss.service']);
         } catch(e) {
             Main.notifyError(Me.metadata.name, e.message);
         }
