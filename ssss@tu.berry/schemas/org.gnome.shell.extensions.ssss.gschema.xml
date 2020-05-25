@@ -17,10 +17,6 @@
             <default>""</default>
             <summary>additional configs</summary>
         </key>
-        <key type="s" name="indicator-text">
-            <default>""</default>
-            <summary>indicator text</summary>
-        </key>
         <key type="b" name="hide-indicator">
             <default>false</default>
             <summary>indicator text</summary>

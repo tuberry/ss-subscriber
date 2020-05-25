@@ -3,18 +3,14 @@
     /* max-width: 200px; */
 }
 
-.ss-subscriber-text {
-    padding-top: 6px; /* fix single Font-Awesome vertical align */
-}
-
-.ss-subscriber-text-none {
+.ss-subscriber-none {
     color: none;
 }
 
-.ss-subscriber-text-auto {
+.ss-subscriber-auto {
     color: turquoise;
 }
 
-.ss-subscriber-text-manual {
+.ss-subscriber-manual {
     color: pink;
 }

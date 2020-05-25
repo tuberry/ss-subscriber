@@ -15,7 +15,6 @@ const Me = ExtensionUtils.getCurrentExtension();
 const _ = imports.gettext.domain(Me.metadata['gettext-domain']).gettext;
 const Fields = Me.imports.prefs.Fields;
 
-const unicode = x => x.includes('\\u') ? eval("'" + x + "'") : x;
 const PROXYMODES = { auto: _("Automatic"), manual: _("Manual"), none: _("Disable") };
 
 const Shadowsocks = GObject.registerClass(
@@ -27,19 +26,14 @@ class Shadowsocks extends GObject.Object {
     _loadSettings() {
         this._fetchSettings();
         this._addButton(this._indicator ? unicode(this._indicator) : '\uF1D8');
-        this._subslinkId   = gsettings.connect(`changed::${Fields.SUBSLINK}`, () => this._subslink = gsettings.get_uint(Fields.SUBSLINK));
-        this._additionalId = gsettings.connect(`changed::${Fields.ADDITIONAL}`, () => this._additional = gsettings.get_uint(Fields.ADDITIONAL));
-        this._proxymodeID  = proxyGsettings.connect(`changed::${Fields.PROXYMODE}`, () => this._changeMode(proxyGsettings.get_string(Fields.PROXYMODE)));
-        this._hidetextId = gsettings.connect(`changed::${Fields.HIDETEXT}`, () => { gsettings.get_boolean(Fields.HIDETEXT) ? this._button.hide() : this._button.show(); });
-        this._indicatorId  = gsettings.connect(`changed::${Fields.INDICATOR}`, () => {
-            this._indicator = gsettings.get_string(Fields.INDICATOR);
-            this._text.set_text(this._indicator ? unicode(this._indicator) : '\uF1D8');
-        });
+        this._subslinkId   = gsettings.connect(`changed::${Fields.SUBSLINK}`, () => { this._subslink = gsettings.get_uint(Fields.SUBSLINK); });
+        this._additionalId = gsettings.connect(`changed::${Fields.ADDITIONAL}`, () => { this._additional = gsettings.get_uint(Fields.ADDITIONAL); });
+        this._proxymodeID  = proxyGsettings.connect(`changed::${Fields.PROXYMODE}`, () => { this._changeMode(proxyGsettings.get_string(Fields.PROXYMODE)); });
+        this._hideiconId = gsettings.connect(`changed::${Fields.HIDEICON}`, () => { gsettings.get_boolean(Fields.HIDEICON) ? this._button.hide() : this._button.show(); });
     }
 
     _fetchSettings() {
         this._subslink   = gsettings.get_string(Fields.SUBSLINK);
-        this._indicator  = gsettings.get_string(Fields.INDICATOR);
         this._subscache  = gsettings.get_string(Fields.SUBSCACHE);
         this._additional = gsettings.get_string(Fields.ADDITIONAL);
         this._servername = gsettings.get_string(Fields.SERVERNAME);
@@ -51,7 +45,6 @@ class Shadowsocks extends GObject.Object {
             if(RegExp(/^_.+Id$/).test(x)) eval(`if(this.%s) gsettings.disconnect(this.%s), this.%s = 0;`.format(x, x, x));
         if(this._proxymodeID)
             proxyGsettings.disconnect(this._proxymodeID), this._proxymodeID = 0;
-        this._text.destroy();
         this._button.destroy();
     }
 
@@ -89,10 +82,9 @@ class Shadowsocks extends GObject.Object {
 
     _addButton(txt) {
         this._button = new PanelMenu.Button(null);
-        this._text = new St.Label({ text: txt, style_class: `ss-subscriber-text-${this._proxymode} ss-subscriber-text` });
-        this._button.add_actor(this._text);
+        this._button.add_actor(new St.Icon({ icon_name: 'network-vpn-symbolic', style_class: 'system-status-icon' }));
         Main.panel.addToStatusArea(Me.metadata.uuid, this._button);
-        gsettings.get_boolean(Fields.HIDETEXT) ? this._button.hide() : this._button.show();
+        gsettings.get_boolean(Fields.HIDEICON) ? this._button.hide() : this._button.show();
         this._updateMenu();
     }
 
@@ -119,12 +111,12 @@ class Shadowsocks extends GObject.Object {
                 if(x.remarks === this._servername) {
                     item.setOrnament(PopupMenu.Ornament.DOT);
                 } else {
-                   item.connect("button-press-event", () => this._genConfig(x));
+                   item.connect("button-press-event", () => { this._genConfig(x); });
                 }
                 servers.menu.addMenuItem(item);
             });
             let sync = new PopupMenu.PopupMenuItem(_("Sync Subscription"));
-            sync.connect("button-press-event", () => this._syncSubscribe());
+            sync.connect("button-press-event", () => { this._syncSubscribe(); });
             this._button.menu.addMenuItem(sync);
         }
 
@@ -134,7 +126,7 @@ class Shadowsocks extends GObject.Object {
             if(x === this._proxymode) {
                 item.setOrnament(PopupMenu.Ornament.DOT);
             } else {
-                item.connect("button-press-event", () => this._changeMode(x));
+                item.connect("button-press-event", () => { this._changeMode(x); });
             }
             proxy.menu.addMenuItem(item);
         }
@@ -150,8 +142,8 @@ class Shadowsocks extends GObject.Object {
 
     _changeMode(mode) {
         if(mode === this._proxymode) return;
-        this._text.remove_style_class_name(`ss-subscriber-text-${this._proxymode}`);
-        this._text.add_style_class_name(`ss-subscriber-text-${mode}`);
+        this._button.remove_style_class_name(`ss-subscriber-${this._proxymode}`);
+        this._button.add_style_class_name(`ss-subscriber-${mode}`);
         this._proxymode = mode;
         proxyGsettings.set_string(Fields.PROXYMODE, mode);
         this._updateMenu();
