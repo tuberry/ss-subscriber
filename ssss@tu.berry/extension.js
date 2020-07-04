@@ -25,11 +25,9 @@ class Shadowsocks extends GObject.Object {
 
     _loadSettings() {
         this._fetchSettings();
-        this._addButton(this._indicator ? unicode(this._indicator) : '\uF1D8');
-        this._subslinkId   = gsettings.connect(`changed::${Fields.SUBSLINK}`, () => { this._subslink = gsettings.get_uint(Fields.SUBSLINK); });
-        this._additionalId = gsettings.connect(`changed::${Fields.ADDITIONAL}`, () => { this._additional = gsettings.get_uint(Fields.ADDITIONAL); });
+        this._subslinkId   = gsettings.connect(`changed::${Fields.SUBSLINK}`, () => { this._subslink = gsettings.get_string(Fields.SUBSLINK); });
+        this._additionalId = gsettings.connect(`changed::${Fields.ADDITIONAL}`, () => { this._additional = gsettings.get_string(Fields.ADDITIONAL); });
         this._proxymodeID  = proxyGsettings.connect(`changed::${Fields.PROXYMODE}`, () => { this._changeMode(proxyGsettings.get_string(Fields.PROXYMODE)); });
-        this._hideiconId = gsettings.connect(`changed::${Fields.HIDEICON}`, () => { gsettings.get_boolean(Fields.HIDEICON) ? this._button.hide() : this._button.show(); });
     }
 
     _fetchSettings() {
@@ -38,14 +36,6 @@ class Shadowsocks extends GObject.Object {
         this._additional = gsettings.get_string(Fields.ADDITIONAL);
         this._servername = gsettings.get_string(Fields.SERVERNAME);
         this._proxymode  = proxyGsettings.get_string(Fields.PROXYMODE);
-    }
-
-    destroy() {
-        for(let x in this)
-            if(RegExp(/^_.+Id$/).test(x)) eval(`if(this.%s) gsettings.disconnect(this.%s), this.%s = 0;`.format(x, x, x));
-        if(this._proxymodeID)
-            proxyGsettings.disconnect(this._proxymodeID), this._proxymodeID = 0;
-        this._button.destroy();
     }
 
     _syncSubscribe() {
@@ -62,29 +52,32 @@ class Shadowsocks extends GObject.Object {
         session.queue_message(request, (session, message) => {
             if (message.status_code == 200) {
                 this._parseSSD(message.response_body.data.trim());
-                Main.notify(Me.metadata.name, _('Synchronized successfully.'));
             } else {
                 Main.notifyError(Me.metadata.name, `Error: %s status code %d`.format(uri.scheme.toUpperCase(), message.status_code));
             }
         });
     }
 
-    _parseSSD(link) {
+    _parseSSD(subs) {
+        if(!subs) {
+            Main.notifyError(Me.metadata.name, _('Error: Subscription content is empty.'));
+            return;
+        }
         const fix = x => x.replace(/-/g, '+').replace(/_/g, '/');
         const fill = x => x.length % 4 === 0 ? x : x + "=".repeat(4 - x.length % 4);
         const decode = x => eval("'" + ByteArray.toString(GLib.base64_decode(fill(fix(x)))) + "'");
-        let subscribe = decode(link.slice(6)).replace(/\s/g, ' ');
 
-        this._subscache = decode(link.slice(6)).replace(/\s/g, ' ');
+        this._subscache = decode(subs.slice(6)).replace(/\s/g, ' ');
         gsettings.set_string(Fields.SUBSCACHE, this._subscache);
+        this._genAll();
+        Main.notify(Me.metadata.name, _('Synchronized successfully.'));
         this._updateMenu();
     }
 
-    _addButton(txt) {
+    _addButton() {
         this._button = new PanelMenu.Button(null);
-        this._button.add_actor(new St.Icon({ icon_name: 'network-vpn-symbolic', style_class: 'system-status-icon' }));
+        this._button.add_actor(new St.Icon({ icon_name: 'applications-science-symbolic', style_class: 'system-status-icon' }));
         Main.panel.addToStatusArea(Me.metadata.uuid, this._button);
-        gsettings.get_boolean(Fields.HIDEICON) ? this._button.hide() : this._button.show();
         this._updateMenu();
     }
 
@@ -169,12 +162,38 @@ class Shadowsocks extends GObject.Object {
         this._updateMenu();
     }
 
+    _genAll() {
+        let conf = {};
+        conf.server = [];
+        let subs = JSON.parse(this._subscache);
+        subs.servers.forEach(x => conf.server.push(x.server));
+        conf.server_port = conf.server_port ? conf.server_port : subs.port;
+        conf.password = conf.password ? conf.password : subs.password;
+        conf.method = conf.method ? conf.method : subs.encryption;
+        Object.assign(conf, JSON.parse(this._additional));
+        try {
+            let file = Gio.File.new_for_path('/etc/shadowsocks/ssss.json');
+            file.replace_contents(JSON.stringify(conf, null, 2), null, false, Gio.FileCreateFlags.PRIVATE, null);
+            Util.spawn(['systemctl', 'restart', 'shadowsocks-libev@ssss.service']);
+        } catch(e) {
+            Main.notifyError(Me.metadata.name, e.message);
+        }
+        this._servername = conf.remarks;
+        gsettings.set_string(Fields.SERVERNAME, this._servername);
+        this._updateMenu();
+    }
+
     enable() {
         this._loadSettings();
+        this._addButton();
     }
 
     disable() {
-        this.destroy();
+        for(let x in this)
+            if(RegExp(/^_.+Id$/).test(x)) eval(`if(this.%s) gsettings.disconnect(this.%s), this.%s = 0;`.format(x, x, x));
+        if(this._proxymodeID)
+            proxyGsettings.disconnect(this._proxymodeID), this._proxymodeID = 0;
+        this._button.destroy();
     }
 });
 

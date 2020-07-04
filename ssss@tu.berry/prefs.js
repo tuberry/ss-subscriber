@@ -11,7 +11,6 @@ const gsettings = ExtensionUtils.getSettings();
 
 var Fields = {
     PROXYMODE:  'mode',
-    HIDEICON:   'hide-indicator',
     SERVERNAME: 'server-remarks',
     SUBSLINK:   'subscribe-link',
     SUBSCACHE:  'subscribe-cache',
@@ -36,21 +35,18 @@ class Subscriber extends Gtk.Grid {
     }
 
     _bulidWidget() {
-        this._field_hide_icon  = new Gtk.Switch();
         this._field_subs_link  = this._entryMaker('https://www.example.com', _('Subscription link (SSD only)'));
         this._field_additional = this._entryMaker('{"local_port": 1874, "fast_open": true}', _('Local config (JSON format)'));
     }
 
     _bulidUI() {
         this._row = 0;
-        this._rowMaker(this._labelMaker(_('Hide indicator')), this._field_hide_icon);
         this._rowMaker(this._field_subs_link);
         this._rowMaker(this._field_additional);
     }
 
     _bindValues() {
         gsettings.bind(Fields.ADDITIONAL, this._field_additional, 'text',   Gio.SettingsBindFlags.DEFAULT);
-        gsettings.bind(Fields.HIDEICON,   this._field_hide_icon,  'active', Gio.SettingsBindFlags.DEFAULT);
         gsettings.bind(Fields.SUBSLINK,   this._field_subs_link,  'text',   Gio.SettingsBindFlags.DEFAULT);
     }
 
@@ -76,25 +72,6 @@ class Subscriber extends Gtk.Grid {
             secondary_icon_tooltip_text: y,
             secondary_icon_activatable: true,
             secondary_icon_name: "dialog-information-symbolic",
-        });
-    }
-
-    _spinMaker(l, u, s) {
-        return new Gtk.SpinButton({
-            adjustment: new Gtk.Adjustment({
-                lower: l,
-                upper: u,
-                step_increment: s,
-            }),
-        });
-    }
-
-    _labelMaker(x) {
-        return new Gtk.Label({
-            label: x,
-            hexpand: true,
-            use_markup: true,
-            halign: Gtk.Align.START,
         });
     }
 });
