@@ -3,14 +3,18 @@
     /* max-width: 200px; */
 }
 
-.ss-subscriber-none {
+.ss-subscriber-button:hover {
+    color: deepskyblue;
+}
+
+.none .ss-subscriber {
     color: none;
 }
 
-.ss-subscriber-auto {
+.auto .ss-subscriber {
     color: turquoise;
 }
 
-.ss-subscriber-manual {
+.manual .ss-subscriber {
     color: pink;
 }

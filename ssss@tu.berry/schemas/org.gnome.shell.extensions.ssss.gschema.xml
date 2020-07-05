@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist gettext-domain="gnome-shell-extensions-ss-subcriber">
     <schema path="/org/gnome/shell/extensions/ss-subscriber/" id="org.gnome.shell.extensions.ss-subscriber">
+        <key type="b" name="lite-mode">
+            <default>false</default>
+            <summary>menu lite mode</summary>
+        </key>
         <key type="s" name="subscribe-cache">
             <default>""</default>
             <summary>subscription cache</summary>

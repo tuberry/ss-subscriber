@@ -6,7 +6,7 @@ const Util = imports.misc.util;
 const ByteArray = imports.byteArray;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
-const { GLib, GObject, Soup, Gio, St } = imports.gi;
+const { GLib, Shell, GObject, Soup, Gio, St } = imports.gi;
 
 const proxyGsettings = new Gio.Settings({ schema_id: 'org.gnome.system.proxy' });
 const ExtensionUtils = imports.misc.extensionUtils;
@@ -28,10 +28,15 @@ class Shadowsocks extends GObject.Object {
         this._subslinkId   = gsettings.connect(`changed::${Fields.SUBSLINK}`, () => { this._subslink = gsettings.get_string(Fields.SUBSLINK); });
         this._additionalId = gsettings.connect(`changed::${Fields.ADDITIONAL}`, () => { this._additional = gsettings.get_string(Fields.ADDITIONAL); });
         this._proxymodeID  = proxyGsettings.connect(`changed::${Fields.PROXYMODE}`, () => { this._changeMode(proxyGsettings.get_string(Fields.PROXYMODE)); });
+        this._litemodeId = gsettings.connect(`changed::${Fields.LITEMODE}`, () => {
+            this._litemode = gsettings.get_boolean(Fields.LITEMODE);
+            this._updateMenu();
+        });
     }
 
     _fetchSettings() {
         this._subslink   = gsettings.get_string(Fields.SUBSLINK);
+        this._litemode   = gsettings.get_boolean(Fields.LITEMODE);
         this._subscache  = gsettings.get_string(Fields.SUBSCACHE);
         this._additional = gsettings.get_string(Fields.ADDITIONAL);
         this._servername = gsettings.get_string(Fields.SERVERNAME);
@@ -76,7 +81,8 @@ class Shadowsocks extends GObject.Object {
 
     _addButton() {
         this._button = new PanelMenu.Button(null);
-        this._button.add_actor(new St.Icon({ icon_name: 'applications-science-symbolic', style_class: 'system-status-icon' }));
+        this._button.add_actor(new St.Icon({ icon_name: 'applications-science-symbolic', style_class: 'ss-subscriber system-status-icon' }));
+        this._button.add_style_class_name(this._proxymode);
         Main.panel.addToStatusArea(Me.metadata.uuid, this._button);
         this._updateMenu();
     }
@@ -93,50 +99,83 @@ class Shadowsocks extends GObject.Object {
         }
     }
 
+    _settingItem() {
+        let item = new PopupMenu.PopupBaseMenuItem({ style_class: 'ss-subscriber-item', hover: false });
+        let hbox = new St.BoxLayout({ x_align: St.Align.START, x_expand: true });
+        let addButtonItem = (icon, func) => {
+            let btn = new St.Button({
+                hover: true,
+                x_expand: true,
+                style_class: 'ss-subscriber-button',
+                child: new St.Icon({ icon_name: icon, style_class: 'popup-menu-icon', }),
+            });
+            btn.connect('clicked', func);
+            hbox.add_child(btn);
+        }
+        addButtonItem('emblem-system-symbolic', () => { item._getTopMenu().close(); ExtensionUtils.openPrefs(); });
+        addButtonItem('face-cool-symbolic', () => { gsettings.set_boolean(Fields.LITEMODE, !this._litemode); });
+        addButtonItem('network-workgroup-symbolic', () => {
+            item._getTopMenu().close();
+            Shell.AppSystem.get_default().lookup_app('gnome-network-panel.desktop').activate();
+        });
+        item.add_child(hbox);
+        return item;
+    }
+
     _updateMenu() {
         this._button.menu.removeAll();
-        if(this._checkCache()) {
-            let subs = JSON.parse(this._subscache);
-            let servers = new PopupMenu.PopupSubMenuMenuItem(_('Airport: ') + subs.airport);
-            this._button.menu.addMenuItem(servers);
-            subs.servers.forEach(x => {
-                let item = new PopupMenu.PopupMenuItem(x.remarks, { style_class: 'ss-subscriber-item' });
-                if(x.remarks === this._servername) {
+        if(this._litemode) {
+            for(let x in PROXYMODES) {
+                let item = new PopupMenu.PopupMenuItem(PROXYMODES[x]);
+                if(x === this._proxymode) {
                     item.setOrnament(PopupMenu.Ornament.DOT);
                 } else {
-                   item.connect("button-press-event", () => { this._genConfig(x); });
+                    item.connect("button-press-event", () => { this._changeMode(x); });
                 }
-                servers.menu.addMenuItem(item);
-            });
-            let sync = new PopupMenu.PopupMenuItem(_("Sync Subscription"));
-            sync.connect("button-press-event", () => { this._syncSubscribe(); });
-            this._button.menu.addMenuItem(sync);
-        }
-
-        let proxy = new PopupMenu.PopupSubMenuMenuItem(_("Proxy: ") + PROXYMODES[this._proxymode]);
-        for(let x in PROXYMODES) {
-            let item = new PopupMenu.PopupMenuItem(PROXYMODES[x]);
-            if(x === this._proxymode) {
-                item.setOrnament(PopupMenu.Ornament.DOT);
-            } else {
-                item.connect("button-press-event", () => { this._changeMode(x); });
+                this._button.menu.addMenuItem(item);
             }
-            proxy.menu.addMenuItem(item);
+        } else {
+            let proxy = new PopupMenu.PopupSubMenuMenuItem(_("Proxy: ") + PROXYMODES[this._proxymode]);
+            for(let x in PROXYMODES) {
+                let item = new PopupMenu.PopupMenuItem(PROXYMODES[x]);
+                if(x === this._proxymode) {
+                    item.setOrnament(PopupMenu.Ornament.DOT);
+                } else {
+                    item.connect("button-press-event", () => { this._changeMode(x); });
+                }
+                proxy.menu.addMenuItem(item);
+            }
+            proxy.menu.addSettingsAction(_("Network Settings"), 'gnome-network-panel.desktop');
+            this._button.menu.addMenuItem(proxy);
+
+            if(this._checkCache()) {
+                let subs = JSON.parse(this._subscache);
+                let servers = new PopupMenu.PopupSubMenuMenuItem(_('Airport: ') + subs.airport);
+                this._button.menu.addMenuItem(servers);
+                subs.servers.forEach(x => {
+                    let item = new PopupMenu.PopupMenuItem(x.remarks, { style_class: 'ss-subscriber-item' });
+                    if(x.remarks === this._servername) {
+                        item.setOrnament(PopupMenu.Ornament.DOT);
+                    } else {
+                       item.connect("button-press-event", () => { this._genConfig(x); });
+                    }
+                    servers.menu.addMenuItem(item);
+                });
+                let sync = new PopupMenu.PopupMenuItem(_("Sync Subscription"));
+                sync.connect("button-press-event", () => { this._syncSubscribe(); });
+                this._button.menu.addMenuItem(sync);
+            }
         }
-        proxy.menu.addSettingsAction(_("Network Settings"), 'gnome-network-panel.desktop');
-        this._button.menu.addMenuItem(proxy);
 
         this._button.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem(''));
 
-        let setting = new PopupMenu.PopupMenuItem(_("Settings"));
-        setting.connect("button-press-event", () => { ExtensionUtils.openPrefs(); });
-        this._button.menu.addMenuItem(setting);
+        this._button.menu.addMenuItem(this._settingItem());
     }
 
     _changeMode(mode) {
         if(mode === this._proxymode) return;
-        this._button.remove_style_class_name(`ss-subscriber-${this._proxymode}`);
-        this._button.add_style_class_name(`ss-subscriber-${mode}`);
+        this._button.remove_style_class_name(this._proxymode);
+        this._button.add_style_class_name(mode);
         this._proxymode = mode;
         proxyGsettings.set_string(Fields.PROXYMODE, mode);
         this._updateMenu();

@@ -11,6 +11,7 @@ const gsettings = ExtensionUtils.getSettings();
 
 var Fields = {
     PROXYMODE:  'mode',
+    LITEMODE:   'lite-mode',
     SERVERNAME: 'server-remarks',
     SUBSLINK:   'subscribe-link',
     SUBSCACHE:  'subscribe-cache',
@@ -35,19 +36,30 @@ class Subscriber extends Gtk.Grid {
     }
 
     _bulidWidget() {
+        this._field_lite_mode  = new Gtk.Switch();
         this._field_subs_link  = this._entryMaker('https://www.example.com', _('Subscription link (SSD only)'));
         this._field_additional = this._entryMaker('{"local_port": 1874, "fast_open": true}', _('Local config (JSON format)'));
     }
 
     _bulidUI() {
         this._row = 0;
+        this._rowMaker(this._labelMaker(_('Lite mode')), this._field_lite_mode);
         this._rowMaker(this._field_subs_link);
         this._rowMaker(this._field_additional);
     }
 
     _bindValues() {
+        gsettings.bind(Fields.LITEMODE,   this._field_lite_mode,  'active', Gio.SettingsBindFlags.DEFAULT);
         gsettings.bind(Fields.ADDITIONAL, this._field_additional, 'text',   Gio.SettingsBindFlags.DEFAULT);
         gsettings.bind(Fields.SUBSLINK,   this._field_subs_link,  'text',   Gio.SettingsBindFlags.DEFAULT);
+    }
+
+    _labelMaker(x) {
+        return new Gtk.Label({
+            label: x,
+            hexpand: true,
+            halign: Gtk.Align.START,
+        });
     }
 
     _rowMaker(x, y, z) {
