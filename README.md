@@ -19,16 +19,31 @@ cp -r ./ss-subscriber/ssss@tu.berry ~/.local/share/gnome-shell/extensions/
 ![image](https://user-images.githubusercontent.com/17917040/81277066-76b7dd00-9086-11ea-953e-af4236c17ee7.png)
 
 ### dependencies
-1. `shadowsocks-libev`: provide `ss-local`.
+1. `shadowsocks-libev`: provides `ss-local`.
 ### config file
 ```
-touch /tmp/ssss.json # readable and writable
-sudo mv /tmp/ssss.json /etc/shadowsocks/
+mkdir -p ~/.config/shadowsocks
+touch ~/.config/shadowsocks/ssss.json
 ```
-### enable service
+### service unit
 ```
-sudo systemctl enable shadowsocks-libev@ssss.service # ignore the output
+mkdir -p ~/.config/systemd/user
+echo '[Unit]
+Description=Shadowsocks-Libev Client User Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/ss-local -c %h/.config/shadowsocks/%i.json
+
+[Install]
+WantedBy=default.target
+' > ~/.config/systemd/user/shadowsocks-libev@.service
+# enable service
+systemctl --user enable shadowsocks-libev@ssss.service --now
 ```
+
 ### fill blanks
 ![image](https://user-images.githubusercontent.com/17917040/81277650-46247300-9087-11ea-8108-e0a686dabae6.png)
 

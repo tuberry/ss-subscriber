@@ -16,6 +16,7 @@ const _ = imports.gettext.domain(Me.metadata['gettext-domain']).gettext;
 const Fields = Me.imports.prefs.Fields;
 
 const PROXYMODES = { auto: _("Automatic"), manual: _("Manual"), none: _("Disable") };
+const newFile = x => Gio.File.new_for_path(GLib.build_filenamev([GLib.get_user_config_dir()].concat(x)));
 
 const Shadowsocks = GObject.registerClass(
 class Shadowsocks extends GObject.Object {
@@ -74,7 +75,7 @@ class Shadowsocks extends GObject.Object {
 
         this._subscache = decode(subs.slice(6)).replace(/\s/g, ' ');
         gsettings.set_string(Fields.SUBSCACHE, this._subscache);
-        this._genAll();
+        if(gsettings.get_boolean('gen-all')) this._genAll();
         Main.notify(Me.metadata.name, _('Synchronized successfully.'));
         this._updateMenu();
     }
@@ -130,7 +131,7 @@ class Shadowsocks extends GObject.Object {
                 if(x === this._proxymode) {
                     item.setOrnament(PopupMenu.Ornament.DOT);
                 } else {
-                    item.connect("button-press-event", () => { this._changeMode(x); });
+                    item.connect("activate", () => { item._getTopMenu().close(); this._changeMode(x); });
                 }
                 this._button.menu.addMenuItem(item);
             }
@@ -141,7 +142,7 @@ class Shadowsocks extends GObject.Object {
                 if(x === this._proxymode) {
                     item.setOrnament(PopupMenu.Ornament.DOT);
                 } else {
-                    item.connect("button-press-event", () => { this._changeMode(x); });
+                    item.connect("activate", () => { item._getTopMenu().close(); this._changeMode(x); });
                 }
                 proxy.menu.addMenuItem(item);
             }
@@ -157,12 +158,12 @@ class Shadowsocks extends GObject.Object {
                     if(x.remarks === this._servername) {
                         item.setOrnament(PopupMenu.Ornament.DOT);
                     } else {
-                       item.connect("button-press-event", () => { this._genConfig(x); });
+                       item.connect("activate", () => { item._getTopMenu().close(); this._genConfig(x); });
                     }
                     servers.menu.addMenuItem(item);
                 });
                 let sync = new PopupMenu.PopupMenuItem(_("Sync Subscription"));
-                sync.connect("button-press-event", () => { this._syncSubscribe(); });
+                sync.connect("activate", () => { sync._getTopMenu().close(); this._syncSubscribe(); });
                 this._button.menu.addMenuItem(sync);
             }
         }
@@ -190,9 +191,9 @@ class Shadowsocks extends GObject.Object {
         Object.assign(conf, config);
         Object.assign(conf, JSON.parse(this._additional));
         try {
-            let file = Gio.File.new_for_path('/etc/shadowsocks/ssss.json');
+            let file = newFile(['shadowsocks', 'ssss.json']);
             file.replace_contents(JSON.stringify(conf, null, 2), null, false, Gio.FileCreateFlags.PRIVATE, null);
-            Util.spawn(['systemctl', 'restart', 'shadowsocks-libev@ssss.service']);
+            Util.spawn(['systemctl',  '--user', 'restart', 'shadowsocks-libev@ssss.service']);
         } catch(e) {
             Main.notifyError(Me.metadata.name, e.message);
         }
@@ -205,21 +206,18 @@ class Shadowsocks extends GObject.Object {
         let conf = {};
         conf.server = [];
         let subs = JSON.parse(this._subscache);
-        subs.servers.forEach(x => conf.server.push(x.server));
+        subs.servers.forEach(x => { if(x.server != '127.0.0.1') conf.server.push(x.server); });
         conf.server_port = conf.server_port ? conf.server_port : subs.port;
         conf.password = conf.password ? conf.password : subs.password;
         conf.method = conf.method ? conf.method : subs.encryption;
         Object.assign(conf, JSON.parse(this._additional));
         try {
-            let file = Gio.File.new_for_path('/etc/shadowsocks/ssss.json');
+            let file = newFile(['shadowsocks', 'whoami.json']);
             file.replace_contents(JSON.stringify(conf, null, 2), null, false, Gio.FileCreateFlags.PRIVATE, null);
-            Util.spawn(['systemctl', 'restart', 'shadowsocks-libev@ssss.service']);
+            Util.spawn(['systemctl', '--user', 'restart', 'shadowsocks-libev@whoami.service']);
         } catch(e) {
             Main.notifyError(Me.metadata.name, e.message);
         }
-        this._servername = conf.remarks;
-        gsettings.set_string(Fields.SERVERNAME, this._servername);
-        this._updateMenu();
     }
 
     enable() {

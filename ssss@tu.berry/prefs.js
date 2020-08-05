@@ -37,8 +37,9 @@ class Subscriber extends Gtk.Grid {
 
     _bulidWidget() {
         this._field_lite_mode  = new Gtk.Switch();
-        this._field_subs_link  = this._entryMaker('https://www.example.com', _('Subscription link (SSD only)'));
+        this._field_subs_link  = this._entryMaker('https://www.example.com',                 _('Subscription link (SSD only)'));
         this._field_additional = this._entryMaker('{"local_port": 1874, "fast_open": true}', _('Local config (JSON format)'));
+        this._field_more_info  = this._labelMaker(_('See <span><a href="' + Me.metadata.url + '">' + Me.metadata.url + '</a></span> for pre-steps to use it.'));
     }
 
     _bulidUI() {
@@ -46,6 +47,7 @@ class Subscriber extends Gtk.Grid {
         this._rowMaker(this._labelMaker(_('Lite mode')), this._field_lite_mode);
         this._rowMaker(this._field_subs_link);
         this._rowMaker(this._field_additional);
+        this._rowMaker(this._field_more_info);
     }
 
     _bindValues() {
@@ -58,6 +60,7 @@ class Subscriber extends Gtk.Grid {
         return new Gtk.Label({
             label: x,
             hexpand: true,
+            use_markup: true,
             halign: Gtk.Align.START,
         });
     }

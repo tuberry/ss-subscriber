@@ -5,6 +5,10 @@
             <default>false</default>
             <summary>menu lite mode</summary>
         </key>
+        <key type="b" name="gen-all">
+            <default>false</default>
+            <summary>genAll</summary>
+        </key>
         <key type="s" name="subscribe-cache">
             <default>""</default>
             <summary>subscription cache</summary>
