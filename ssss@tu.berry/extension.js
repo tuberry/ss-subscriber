@@ -26,9 +26,6 @@ class Shadowsocks extends GObject.Object {
         this.PROXYMODES = { auto: _('Automatic'), manual: _('Manual'), none: _('Disable') };
     }
 
-    _loadSettings() {
-    }
-
     get _subslink() {
         return gsettings.get_string(Fields.SUBSLINK);
     }
@@ -57,6 +54,14 @@ class Shadowsocks extends GObject.Object {
         proxyGsettings.set_string(Fields.PROXYMODE, mode);
     }
 
+    set _subscache(cache) {
+        gsettings.set_string(Fields.SUBSCACHE, cache);
+    }
+
+    set _servername(name) {
+        gsettings.set_string(Fields.SERVERNAME, name);
+    }
+
     _onModeChanged() {
         this._button.remove_style_class_name(this._tmpMode);
         this._button.add_style_class_name(this._proxymode);
@@ -66,7 +71,6 @@ class Shadowsocks extends GObject.Object {
     _syncSubscribe() {
         if(!this._subslink) {
             this._subscache = '';
-            gsettings.set_string(Fields.SUBSCACHE, '');
             return;
         }
         Main.notify(Me.metadata.name, _('Start synchronizing.'));
@@ -97,7 +101,6 @@ class Shadowsocks extends GObject.Object {
         const decode = x => eval("'" + ByteArray.toString(GLib.base64_decode(fill(fix(x)))) + "'");
 
         this._subscache = decode(subs.slice(6)).replace(/\s/g, ' ');
-        gsettings.set_string(Fields.SUBSCACHE, this._subscache);
         if(gsettings.get_boolean('gen-all')) this._genAll();
         Main.notify(Me.metadata.name, _('Synchronized successfully.'));
         this._updateMenu();
@@ -221,7 +224,6 @@ class Shadowsocks extends GObject.Object {
             Main.notifyError(Me.metadata.name, e.message);
         }
         this._servername = conf.remarks;
-        gsettings.set_string(Fields.SERVERNAME, this._servername);
         this._updateMenu();
     }
 
