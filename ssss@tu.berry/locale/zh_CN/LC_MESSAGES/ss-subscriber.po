@@ -1,0 +1,62 @@
+# Chinese translations for PACKAGE package.
+# Copyright (C) 2020 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# tuberry <tuberry@example.com>, 2020.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-09-06 13:49+0800\n"
+"PO-Revision-Date: 2020-09-06 13:49+0800\n"
+"Last-Translator: tuberry <tuberry@example.com>\n"
+"Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: extension.js:19
+msgid "Automatic"
+msgstr "自动"
+
+#: extension.js:19
+msgid "Manual"
+msgstr "手动"
+
+#: extension.js:19
+msgid "Disable"
+msgstr "禁用"
+
+#: extension.js:85
+msgid "Synchronized successfully."
+msgstr "订阅更新成功。"
+
+#: extension.js:153
+msgid "Proxy: "
+msgstr "代理："
+
+#: extension.js:167
+msgid "Airport: "
+msgstr "提供商："
+
+#: extension.js:178
+msgid "Sync Subscription"
+msgstr "更新订阅"
+
+#: prefs.js:40
+msgid "Subscription link (SSD only)"
+msgstr "订阅链接(仅支持 SSD)"
+
+#: prefs.js:41
+msgid "Local config (JSON format)"
+msgstr "本地配置(JSON 格式)"
+
+#: prefs.js:42
+#, javascript-format
+msgid "See <span><a href=\"%s\">%s</a></span> for pre-steps to use it."
+msgstr "前置步骤参见 <span><a href=\"%s\">%s</a></span>。"
+
+#: prefs.js:47
+msgid "Lite mode"
+msgstr "简洁模式"

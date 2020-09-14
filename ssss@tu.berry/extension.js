@@ -15,33 +15,52 @@ const Me = ExtensionUtils.getCurrentExtension();
 const _ = imports.gettext.domain(Me.metadata['gettext-domain']).gettext;
 const Fields = Me.imports.prefs.Fields;
 
-const PROXYMODES = { auto: _("Automatic"), manual: _("Manual"), none: _("Disable") };
+const PAPER_PLANE_ICON = Me.dir.get_child('icons').get_child('paper-plane-symbolic.svg').get_path();
 const newFile = x => Gio.File.new_for_path(GLib.build_filenamev([GLib.get_user_config_dir()].concat(x)));
+const base64rgx = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/
 
 const Shadowsocks = GObject.registerClass(
 class Shadowsocks extends GObject.Object {
     _init() {
         super._init();
+        this.PROXYMODES = { auto: _('Automatic'), manual: _('Manual'), none: _('Disable') };
     }
 
     _loadSettings() {
-        this._fetchSettings();
-        this._subslinkId   = gsettings.connect(`changed::${Fields.SUBSLINK}`, () => { this._subslink = gsettings.get_string(Fields.SUBSLINK); });
-        this._additionalId = gsettings.connect(`changed::${Fields.ADDITIONAL}`, () => { this._additional = gsettings.get_string(Fields.ADDITIONAL); });
-        this._proxymodeID  = proxyGsettings.connect(`changed::${Fields.PROXYMODE}`, () => { this._changeMode(proxyGsettings.get_string(Fields.PROXYMODE)); });
-        this._litemodeId = gsettings.connect(`changed::${Fields.LITEMODE}`, () => {
-            this._litemode = gsettings.get_boolean(Fields.LITEMODE);
-            this._updateMenu();
-        });
     }
 
-    _fetchSettings() {
-        this._subslink   = gsettings.get_string(Fields.SUBSLINK);
-        this._litemode   = gsettings.get_boolean(Fields.LITEMODE);
-        this._subscache  = gsettings.get_string(Fields.SUBSCACHE);
-        this._additional = gsettings.get_string(Fields.ADDITIONAL);
-        this._servername = gsettings.get_string(Fields.SERVERNAME);
-        this._proxymode  = proxyGsettings.get_string(Fields.PROXYMODE);
+    get _subslink() {
+        return gsettings.get_string(Fields.SUBSLINK);
+    }
+
+    get _subscache() {
+        return gsettings.get_string(Fields.SUBSCACHE);
+    }
+
+    get _litemode() {
+        return gsettings.get_boolean(Fields.LITEMODE);
+    }
+
+    get _servername() {
+        return gsettings.get_string(Fields.SERVERNAME) || 'NONE';
+    }
+
+    get _additional() {
+        return gsettings.get_string(Fields.ADDITIONAL);
+    }
+
+    get _proxymode() {
+        return proxyGsettings.get_string(Fields.PROXYMODE);
+    }
+
+    set _proxymode(mode) {
+        proxyGsettings.set_string(Fields.PROXYMODE, mode);
+    }
+
+    _onModeChanged() {
+        this._button.remove_style_class_name(this._tmpMode);
+        this._button.add_style_class_name(this._proxymode);
+        this._updateMenu();
     }
 
     _syncSubscribe() {
@@ -56,10 +75,14 @@ class Shadowsocks extends GObject.Object {
         let uri = new Soup.URI(this._subslink);
         let request = Soup.Message.new_from_uri('GET', uri);
         session.queue_message(request, (session, message) => {
-            if (message.status_code == 200) {
-                this._parseSSD(message.response_body.data.trim());
-            } else {
-                Main.notifyError(Me.metadata.name, `Error: %s status code %d`.format(uri.scheme.toUpperCase(), message.status_code));
+            try {
+                if (message.status_code == 200) {
+                    this._parseSSD(message.response_body.data.trim());
+                } else {
+                    Main.notifyError(Me.metadata.name, 'Error: %s status code %d'.format(uri.scheme.toUpperCase(), message.status_code));
+                }
+            } catch(e) {
+                Main.notifyError(Me.metadata.name, e.message);
             }
         });
     }
@@ -82,7 +105,10 @@ class Shadowsocks extends GObject.Object {
 
     _addButton() {
         this._button = new PanelMenu.Button(null);
-        this._button.add_actor(new St.Icon({ icon_name: 'applications-science-symbolic', style_class: 'ss-subscriber system-status-icon' }));
+        this._button.add_actor(new St.Icon({
+            gicon: new Gio.FileIcon({ file: Gio.File.new_for_path(PAPER_PLANE_ICON) }),
+            style_class: 'ss-subscriber system-status-icon'
+        }));
         this._button.add_style_class_name(this._proxymode);
         Main.panel.addToStatusArea(Me.metadata.uuid, this._button);
         this._updateMenu();
@@ -114,6 +140,11 @@ class Shadowsocks extends GObject.Object {
             hbox.add_child(btn);
         }
         addButtonItem('emblem-system-symbolic', () => { item._getTopMenu().close(); ExtensionUtils.openPrefs(); });
+        addButtonItem('view-refresh-symbolic', () => {
+            item._getTopMenu().close();
+            let shadowsocks = 'shadowsocks-libev@%s.service'.format(gsettings.get_boolean('gen-all') ? 'whoami' : 'ssss');
+            Util.spawn(['systemctl', '--user', 'restart', shadowsocks]);
+        });
         addButtonItem('face-cool-symbolic', () => { gsettings.set_boolean(Fields.LITEMODE, !this._litemode); });
         addButtonItem('network-workgroup-symbolic', () => {
             item._getTopMenu().close();
@@ -126,27 +157,28 @@ class Shadowsocks extends GObject.Object {
     _updateMenu() {
         this._button.menu.removeAll();
         if(this._litemode) {
-            for(let x in PROXYMODES) {
-                let item = new PopupMenu.PopupMenuItem(PROXYMODES[x]);
+            for(let x in this.PROXYMODES) {
+                let item = new PopupMenu.PopupMenuItem(this.PROXYMODES[x]);
                 if(x === this._proxymode) {
+                    this._tmpMode = x;
                     item.setOrnament(PopupMenu.Ornament.DOT);
                 } else {
-                    item.connect("activate", () => { item._getTopMenu().close(); this._changeMode(x); });
+                    item.connect("activate", () => { item._getTopMenu().close(); this._proxymode = x; });
                 }
                 this._button.menu.addMenuItem(item);
             }
         } else {
-            let proxy = new PopupMenu.PopupSubMenuMenuItem(_("Proxy: ") + PROXYMODES[this._proxymode]);
-            for(let x in PROXYMODES) {
-                let item = new PopupMenu.PopupMenuItem(PROXYMODES[x]);
+            let proxy = new PopupMenu.PopupSubMenuMenuItem(_("Proxy: ") + this.PROXYMODES[this._proxymode]);
+            for(let x in this.PROXYMODES) {
+                let item = new PopupMenu.PopupMenuItem(this.PROXYMODES[x]);
                 if(x === this._proxymode) {
+                    this._tmpMode = x;
                     item.setOrnament(PopupMenu.Ornament.DOT);
                 } else {
-                    item.connect("activate", () => { item._getTopMenu().close(); this._changeMode(x); });
+                    item.connect("activate", () => { item._getTopMenu().close(); this._proxymode = x; });
                 }
                 proxy.menu.addMenuItem(item);
             }
-            proxy.menu.addSettingsAction(_("Network Settings"), 'gnome-network-panel.desktop');
             this._button.menu.addMenuItem(proxy);
 
             if(this._checkCache()) {
@@ -171,15 +203,6 @@ class Shadowsocks extends GObject.Object {
         this._button.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem(''));
 
         this._button.menu.addMenuItem(this._settingItem());
-    }
-
-    _changeMode(mode) {
-        if(mode === this._proxymode) return;
-        this._button.remove_style_class_name(this._proxymode);
-        this._button.add_style_class_name(mode);
-        this._proxymode = mode;
-        proxyGsettings.set_string(Fields.PROXYMODE, mode);
-        this._updateMenu();
     }
 
     _genConfig(config) {
@@ -221,13 +244,14 @@ class Shadowsocks extends GObject.Object {
     }
 
     enable() {
-        this._loadSettings();
+        this._proxymodeID = proxyGsettings.connect('changed::' + Fields.PROXYMODE, this._onModeChanged.bind(this));
+        this._litemodeId = gsettings.connect('changed::' + Fields.LITEMODE, this._updateMenu.bind(this));
         this._addButton();
     }
 
     disable() {
         for(let x in this)
-            if(RegExp(/^_.+Id$/).test(x)) eval(`if(this.%s) gsettings.disconnect(this.%s), this.%s = 0;`.format(x, x, x));
+            if(RegExp(/^_.+Id$/).test(x)) eval('if(this.%s) gsettings.disconnect(this.%s), this.%s = 0;'.format(x, x, x));
         if(this._proxymodeID)
             proxyGsettings.disconnect(this._proxymodeID), this._proxymodeID = 0;
         this._button.destroy();
@@ -235,5 +259,6 @@ class Shadowsocks extends GObject.Object {
 });
 
 function init() {
+    ExtensionUtils.initTranslations();
     return new Shadowsocks();
 }

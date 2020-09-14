@@ -39,7 +39,7 @@ class Subscriber extends Gtk.Grid {
         this._field_lite_mode  = new Gtk.Switch();
         this._field_subs_link  = this._entryMaker('https://www.example.com',                 _('Subscription link (SSD only)'));
         this._field_additional = this._entryMaker('{"local_port": 1874, "fast_open": true}', _('Local config (JSON format)'));
-        this._field_more_info  = this._labelMaker(_('See <span><a href="' + Me.metadata.url + '">' + Me.metadata.url + '</a></span> for pre-steps to use it.'));
+        this._field_more_info  = this._labelMaker(_('See <span><a href="%s">%s</a></span> for pre-steps to use it.').format(Me.metadata.url, Me.metadata.url));
     }
 
     _bulidUI() {
