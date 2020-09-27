@@ -11,8 +11,8 @@ Simple shadowsocks subscriber (SSD only), yet another proxy switcher for gnome s
 
 Or manually:
 ```shell
-git clone git@github.com:tuberry/ss-subscriber.git
-cp -r ./ss-subscriber/ssss@tu.berry ~/.local/share/gnome-shell/extensions/
+git clone https://github.com/tuberry/ss-subscriber.git
+cd ss-subscriber && make install
 ```
 ## Usage
 
