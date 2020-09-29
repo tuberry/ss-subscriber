@@ -1,14 +1,14 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
+# This file is distributed under the same license as the Ss Subscriber package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: Ss Subscriber\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-09-07 12:48+0800\n"
+"POT-Creation-Date: 2020-09-28 19:09+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,39 +17,39 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: extension.js:42
+#: extension.js:25
 msgid "Automatic"
 msgstr ""
 
-#: extension.js:42
+#: extension.js:25
 msgid "Manual"
 msgstr ""
 
-#: extension.js:42
+#: extension.js:25
 msgid "Disable"
 msgstr ""
 
-#: extension.js:57
+#: extension.js:75
 msgid "Start synchronizing."
 msgstr ""
 
-#: extension.js:77
+#: extension.js:95
 msgid "Error: Subscription content is empty."
 msgstr ""
 
-#: extension.js:87
+#: extension.js:104
 msgid "Synchronized successfully."
 msgstr ""
 
-#: extension.js:155
+#: extension.js:173
 msgid "Proxy: "
 msgstr ""
 
-#: extension.js:169
+#: extension.js:188
 msgid "Airport: "
 msgstr ""
 
-#: extension.js:180
+#: extension.js:199
 msgid "Sync Subscription"
 msgstr ""
 

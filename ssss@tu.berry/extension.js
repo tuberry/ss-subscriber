@@ -12,18 +12,17 @@ const proxyGsettings = new Gio.Settings({ schema_id: 'org.gnome.system.proxy' })
 const ExtensionUtils = imports.misc.extensionUtils;
 const gsettings = ExtensionUtils.getSettings();
 const Me = ExtensionUtils.getCurrentExtension();
-const _ = imports.gettext.domain(Me.metadata['gettext-domain']).gettext;
 const Fields = Me.imports.prefs.Fields;
+const _ = imports.gettext.domain(Me.metadata['gettext-domain']).gettext;
 
 const PAPER_PLANE_ICON = Me.dir.get_child('icons').get_child('paper-plane-symbolic.svg').get_path();
 const newFile = x => Gio.File.new_for_path(GLib.build_filenamev([GLib.get_user_config_dir()].concat(x)));
-const base64rgx = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/
 
 const Shadowsocks = GObject.registerClass(
 class Shadowsocks extends GObject.Object {
     _init() {
         super._init();
-        this.PROXYMODES = { auto: _('Automatic'), manual: _('Manual'), none: _('Disable') };
+        this.MODES = { auto: _('Automatic'), manual: _('Manual'), none: _('Disable') };
     }
 
     get _subslink() {
@@ -160,8 +159,8 @@ class Shadowsocks extends GObject.Object {
     _updateMenu() {
         this._button.menu.removeAll();
         if(this._litemode) {
-            for(let x in this.PROXYMODES) {
-                let item = new PopupMenu.PopupMenuItem(this.PROXYMODES[x]);
+            for(let x in this.MODES) {
+                let item = new PopupMenu.PopupMenuItem(this.MODES[x]);
                 if(x === this._proxymode) {
                     this._tmpMode = x;
                     item.setOrnament(PopupMenu.Ornament.DOT);
@@ -171,9 +170,9 @@ class Shadowsocks extends GObject.Object {
                 this._button.menu.addMenuItem(item);
             }
         } else {
-            let proxy = new PopupMenu.PopupSubMenuMenuItem(_("Proxy: ") + this.PROXYMODES[this._proxymode]);
-            for(let x in this.PROXYMODES) {
-                let item = new PopupMenu.PopupMenuItem(this.PROXYMODES[x]);
+            let proxy = new PopupMenu.PopupSubMenuMenuItem(_("Proxy: ") + this.MODES[this._proxymode]);
+            for(let x in this.MODES) {
+                let item = new PopupMenu.PopupMenuItem(this.MODES[x]);
                 if(x === this._proxymode) {
                     this._tmpMode = x;
                     item.setOrnament(PopupMenu.Ornament.DOT);
