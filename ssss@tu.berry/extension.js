@@ -136,7 +136,7 @@ class Shadowsocks extends GObject.Object {
                 hover: true,
                 x_expand: true,
                 style_class: 'ss-subscriber-button',
-                child: new St.Icon({ icon_name: icon, style_class: 'popup-menu-icon', }),
+                child: new St.Icon({ icon_name: icon, style_class: 'ss-subscriber-icon', }),
             });
             btn.connect('clicked', func);
             hbox.add_child(btn);

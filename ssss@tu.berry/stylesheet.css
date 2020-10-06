@@ -7,6 +7,10 @@
     color: deepskyblue;
 }
 
+.ss-subscriber-icon {
+    icon-size: 16px;
+}
+
 .none .ss-subscriber {
     color: none;
 }
