@@ -150,8 +150,7 @@ class Shadowsocks extends GObject.Object {
         addButtonItem('emblem-system-symbolic', () => { item._getTopMenu().close(); ExtensionUtils.openPrefs(); });
         addButtonItem('view-refresh-symbolic', () => {
             item._getTopMenu().close();
-            let shadowsocks = 'shadowsocks-libev@%s.service'.format(gsettings.get_boolean('gen-all') ? 'whoami' : 'ssss');
-            Util.spawn(['systemctl', '--user', 'restart', shadowsocks]);
+            Util.spawnCommandLine(this._restart);
         });
         addButtonItem('face-cool-symbolic', () => { gsettings.set_boolean(Fields.LITEMODE, !this._litemode); });
         addButtonItem('network-workgroup-symbolic', () => {
