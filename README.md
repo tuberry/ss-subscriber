@@ -34,7 +34,7 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-Type=simple
+Type=exec
 ExecStart=/usr/bin/ss-local -c %h/.config/shadowsocks/%i.json
 
 [Install]
@@ -45,15 +45,12 @@ systemctl --user enable shadowsocks-libev@ssss.service --now
 ```
 
 ### fill blanks
-![image](https://user-images.githubusercontent.com/17917040/81277650-46247300-9087-11ea-8108-e0a686dabae6.png)
+![image](https://user-images.githubusercontent.com/17917040/99398455-675ff900-291f-11eb-9f31-55ad55cdc54f.png)
 
 ## Acknowledgements
 * [proxy-switcher](https://github.com/tomflannaghan/proxy-switcher): network setting button
 * [SSD-windows](https://github.com/TheCGDF/SSD-Windows/wiki/HTTP-Subscription-Agreement): SSD http subscription agreement
 * [GS-shadowsocks](https://github.com/ylxdzsw/gnome-shell-extension-shadowsocks): panel button and menu arrangement
-
-## Note
-1. NO feature request.
 
 [license]:https://img.shields.io/badge/license-GPLv3-green.svg
 [EGO]:https://extensions.gnome.org/extension/3073/ss-subscriber/

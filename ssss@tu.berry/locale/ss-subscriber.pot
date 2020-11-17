@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Ss Subscriber\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-09-28 19:09+0800\n"
+"POT-Creation-Date: 2020-11-17 17:24+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,55 +17,63 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: extension.js:25
+#: extension.js:23
 msgid "Automatic"
 msgstr ""
 
-#: extension.js:25
+#: extension.js:23
 msgid "Manual"
 msgstr ""
 
-#: extension.js:25
+#: extension.js:23
 msgid "Disable"
 msgstr ""
 
-#: extension.js:75
+#: extension.js:81
 msgid "Start synchronizing."
 msgstr ""
 
-#: extension.js:95
+#: extension.js:101
 msgid "Error: Subscription content is empty."
 msgstr ""
 
-#: extension.js:104
+#: extension.js:110
 msgid "Synchronized successfully."
 msgstr ""
 
-#: extension.js:173
+#: extension.js:179
 msgid "Proxy: "
 msgstr ""
 
-#: extension.js:188
+#: extension.js:194
 msgid "Airport: "
 msgstr ""
 
-#: extension.js:199
+#: extension.js:205
 msgid "Sync Subscription"
 msgstr ""
 
-#: prefs.js:40
+#: prefs.js:42
+msgid "Choose the config file"
+msgstr ""
+
+#: prefs.js:43
 msgid "Subscription link (SSD only)"
 msgstr ""
 
-#: prefs.js:41
+#: prefs.js:44
 msgid "Local config (JSON format)"
 msgstr ""
 
-#: prefs.js:42
+#: prefs.js:45
+msgid "Command to restart the service"
+msgstr ""
+
+#: prefs.js:46
 #, javascript-format
 msgid "See <span><a href=\"%s\">%s</a></span> for pre-steps to use it."
 msgstr ""
 
-#: prefs.js:47
-msgid "Lite mode"
+#: prefs.js:51
+msgid "Config file"
 msgstr ""

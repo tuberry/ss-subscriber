@@ -25,5 +25,13 @@
             <default>""</default>
             <summary>additional configs</summary>
         </key>
+        <key type="s" name="config-file">
+            <default>""</default>
+            <summary>config file</summary>
+        </key>
+        <key type="s" name="restart-command">
+            <default>""</default>
+            <summary>command to restart service</summary>
+        </key>
     </schema>
 </schemalist>

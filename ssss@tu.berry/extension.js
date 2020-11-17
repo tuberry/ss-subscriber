@@ -14,9 +14,7 @@ const gsettings = ExtensionUtils.getSettings();
 const Me = ExtensionUtils.getCurrentExtension();
 const Fields = Me.imports.prefs.Fields;
 const _ = imports.gettext.domain(Me.metadata['gettext-domain']).gettext;
-
 const PAPER_PLANE_ICON = Me.dir.get_child('icons').get_child('paper-plane-symbolic.svg').get_path();
-const newFile = x => Gio.File.new_for_path(GLib.build_filenamev([GLib.get_user_config_dir()].concat(x)));
 
 const Shadowsocks = GObject.registerClass(
 class Shadowsocks extends GObject.Object {
@@ -39,6 +37,14 @@ class Shadowsocks extends GObject.Object {
 
     get _servername() {
         return gsettings.get_string(Fields.SERVERNAME) || 'NONE';
+    }
+
+    get _filename() {
+        return gsettings.get_string(Fields.FILENAME);
+    }
+
+    get _restart() {
+        return gsettings.get_string(Fields.RESTART);
     }
 
     get _additional() {
@@ -216,9 +222,9 @@ class Shadowsocks extends GObject.Object {
         Object.assign(conf, config);
         Object.assign(conf, JSON.parse(this._additional));
         try {
-            let file = newFile(['shadowsocks', 'ssss.json']);
+            let file = Gio.File.new_for_path(this._filename);
             file.replace_contents(JSON.stringify(conf, null, 2), null, false, Gio.FileCreateFlags.PRIVATE, null);
-            Util.spawn(['systemctl',  '--user', 'restart', 'shadowsocks-libev@ssss.service']);
+            Util.spawnCommandLine(this._restart);
         } catch(e) {
             Main.notifyError(Me.metadata.name, e.message);
         }
@@ -236,9 +242,9 @@ class Shadowsocks extends GObject.Object {
         conf.method = conf.method ? conf.method : subs.encryption;
         Object.assign(conf, JSON.parse(this._additional));
         try {
-            let file = newFile(['shadowsocks', 'whoami.json']);
+            let file = Gio.File.new_for_path(this._filename);
             file.replace_contents(JSON.stringify(conf, null, 2), null, false, Gio.FileCreateFlags.PRIVATE, null);
-            Util.spawn(['systemctl', '--user', 'restart', 'shadowsocks-libev@whoami.service']);
+            Util.spawnCommandLine(this._restart);
         } catch(e) {
             Main.notifyError(Me.metadata.name, e.message);
         }
