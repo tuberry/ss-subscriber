@@ -28,7 +28,11 @@ class Shadowsocks extends GObject.Object {
     }
 
     get _subscache() {
-        return gsettings.get_string(Fields.SUBSCACHE);
+        let fix = x => x.replace(/-/g, '+').replace(/_/g, '/');
+        let fill = x => x.length % 4 === 0 ? x : x + "=".repeat(4 - x.length % 4);
+        let decode = x => eval("'" + ByteArray.toString(GLib.base64_decode(fill(fix(x)))) + "'");
+
+        return decode(gsettings.get_string(Fields.SUBSCACHE).slice(6)).replace(/\s/g, ' ');
     }
 
     get _litemode() {
@@ -47,8 +51,20 @@ class Shadowsocks extends GObject.Object {
         return gsettings.get_string(Fields.RESTART);
     }
 
-    get _additional() {
-        return gsettings.get_string(Fields.ADDITIONAL);
+    get _localConf() {
+        let local = {};
+        if(gsettings.get_string(Fields.LOCALADDR))
+            local.local_address = gsettings.get_string(Fields.LOCALADDR);
+        local.local_port = gsettings.get_uint(Fields.LOCALPORT);
+        local.timeout = gsettings.get_uint(Fields.LOCALTIME);
+        if(gsettings.get_boolean(Fields.ENABLEADD))
+            try {
+                Object.assign(local, JSON.parse(gsettings.get_string(Fields.ADDITIONAL)));
+            } catch(e) {
+                Main.notifyError(Me.metadata.name, "Error: local conf -- %s".format(e.message));
+            }
+
+        return local;
     }
 
     get _proxymode() {
@@ -101,11 +117,7 @@ class Shadowsocks extends GObject.Object {
             Main.notifyError(Me.metadata.name, _('Error: Subscription content is empty.'));
             return;
         }
-        const fix = x => x.replace(/-/g, '+').replace(/_/g, '/');
-        const fill = x => x.length % 4 === 0 ? x : x + "=".repeat(4 - x.length % 4);
-        const decode = x => eval("'" + ByteArray.toString(GLib.base64_decode(fill(fix(x)))) + "'");
-
-        this._subscache = decode(subs.slice(6)).replace(/\s/g, ' ');
+        this._subscache = subs;
         if(gsettings.get_boolean('gen-all')) this._genAll();
         Main.notify(Me.metadata.name, _('Synchronized successfully.'));
         this._updateMenu();
@@ -190,7 +202,7 @@ class Shadowsocks extends GObject.Object {
 
             if(this._checkCache()) {
                 let subs = JSON.parse(this._subscache);
-                let servers = new PopupMenu.PopupSubMenuMenuItem(_('Airport: ') + subs.airport);
+                let servers = new PopupMenu.PopupSubMenuMenuItem(_('Airport: ') + "%d/%d".format(subs.traffic_used, subs.traffic_total));
                 this._button.menu.addMenuItem(servers);
                 subs.servers.forEach(x => {
                     let item = new PopupMenu.PopupMenuItem(x.remarks, { style_class: 'ss-subscriber-item' });
@@ -219,7 +231,7 @@ class Shadowsocks extends GObject.Object {
         conf.password = conf.password ? conf.password : subs.password;
         conf.method = conf.method ? conf.method : subs.encryption;
         Object.assign(conf, config);
-        Object.assign(conf, JSON.parse(this._additional));
+        Object.assign(conf, this._localConf);
         try {
             let file = Gio.File.new_for_path(this._filename);
             file.replace_contents(JSON.stringify(conf, null, 2), null, false, Gio.FileCreateFlags.PRIVATE, null);
@@ -239,7 +251,7 @@ class Shadowsocks extends GObject.Object {
         conf.server_port = conf.server_port ? conf.server_port : subs.port;
         conf.password = conf.password ? conf.password : subs.password;
         conf.method = conf.method ? conf.method : subs.encryption;
-        Object.assign(conf, JSON.parse(this._additional));
+        Object.assign(conf, this._localConf);
         try {
             let file = Gio.File.new_for_path(this._filename);
             file.replace_contents(JSON.stringify(conf, null, 2), null, false, Gio.FileCreateFlags.PRIVATE, null);

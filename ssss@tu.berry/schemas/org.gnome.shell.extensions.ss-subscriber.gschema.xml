@@ -9,9 +9,9 @@
             <default>false</default>
             <summary>genAll</summary>
         </key>
-        <key type="s" name="subscribe-cache">
+        <key type="s" name="subscribe-caches">
             <default>""</default>
-            <summary>subscription cache</summary>
+            <summary>subscription caches</summary>
         </key>
         <key type="s" name="subscribe-link">
             <default>""</default>
@@ -21,10 +21,6 @@
             <default>""</default>
             <summary>current server name</summary>
         </key>
-        <key type="s" name="addtional-config">
-            <default>""</default>
-            <summary>additional configs</summary>
-        </key>
         <key type="s" name="config-file">
             <default>""</default>
             <summary>config file</summary>
@@ -32,6 +28,28 @@
         <key type="s" name="restart-command">
             <default>""</default>
             <summary>command to restart service</summary>
+        </key>
+        <key type="u" name="local-port">
+            <range min="0" max="65535"/>
+            <default>1080</default>
+            <summary>config file local port</summary>
+        </key>
+        <key type="s" name="local-addr">
+            <default>""</default>
+            <summary>config file local addr</summary>
+        </key>
+        <key type="u" name="local-timeout">
+            <range min="200" max="1000"/>
+            <default>300</default>
+            <summary>config file local timeout</summary>
+        </key>
+        <key type="s" name="addtional-config">
+            <default>""</default>
+            <summary>additional configs</summary>
+        </key>
+        <key type="b" name="enable-addtional">
+            <default>false</default>
+            <summary>enable additional configs or not</summary>
         </key>
     </schema>
 </schemalist>

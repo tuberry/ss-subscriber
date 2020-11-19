@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-11-17 17:24+0800\n"
+"POT-Creation-Date: 2020-11-20 05:32+0800\n"
 "PO-Revision-Date: 2020-09-06 13:49+0800\n"
 "Last-Translator: tuberry <tuberry@example.com>\n"
 "Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
@@ -28,51 +28,71 @@ msgstr "手动"
 msgid "Disable"
 msgstr "禁用"
 
-#: extension.js:81
+#: extension.js:97
 msgid "Start synchronizing."
 msgstr "开始同步。"
 
-#: extension.js:101
+#: extension.js:117
 msgid "Error: Subscription content is empty."
 msgstr "错误：订阅内容为空。"
 
-#: extension.js:110
+#: extension.js:122
 msgid "Synchronized successfully."
 msgstr "订阅更新成功。"
 
-#: extension.js:179
+#: extension.js:190
 msgid "Proxy: "
 msgstr "代理："
 
-#: extension.js:194
+#: extension.js:205
 msgid "Airport: "
 msgstr "提供商："
 
-#: extension.js:205
+#: extension.js:216
 msgid "Sync Subscription"
 msgstr "更新订阅"
 
 #: prefs.js:42
-msgid "Choose the config file"
-msgstr "选取配置文件"
-
-#: prefs.js:43
-msgid "Subscription link (SSD only)"
-msgstr "订阅链接(仅支持 SSD)"
-
-#: prefs.js:44
-msgid "Local config (JSON format)"
-msgstr "本地配置(JSON 格式)"
-
-#: prefs.js:45
-msgid "Command to restart the service"
-msgstr "重启服务的命令"
-
-#: prefs.js:46
 #, javascript-format
 msgid "See <span><a href=\"%s\">%s</a></span> for pre-steps to use it."
 msgstr "前置步骤参见 <span><a href=\"%s\">%s</a></span>。"
 
-#: prefs.js:51
-msgid "Config file"
+#: prefs.js:43
+msgid "Choose the config file"
+msgstr "选取配置文件"
+
+#: prefs.js:44
+msgid "Subscription link (SSD only)"
+msgstr "订阅链接(仅支持 SSD)"
+
+#: prefs.js:46
+msgid "Addtional conf"
+msgstr "其他设置"
+
+#: prefs.js:58
+msgid "Restart"
+msgstr "重启"
+
+#: prefs.js:59
+msgid "Apply new conf then restart service"
+msgstr "应用设置后重启服务"
+
+#: prefs.js:62
+msgid "Server"
+msgstr "远端"
+
+#: prefs.js:66
+msgid "Local"
+msgstr "本地"
+
+#: prefs.js:67
+msgid "Conf file"
 msgstr "配置文件"
+
+#: prefs.js:68
+msgid "Timeout (ms)"
+msgstr "超时时间（ms）"
+
+#: prefs.js:69
+msgid "Address and port"
+msgstr "地址端口"
