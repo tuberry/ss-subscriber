@@ -20,7 +20,6 @@ var Fields = {
     SUBSLINK:   'subscribe-link',
     RESTART:    'restart-command',
     ADDITIONAL: 'addtional-config',
-    ENABLEADD:  'enable-addtional',
     SUBSCACHE:  'subscribe-caches',
 };
 
@@ -39,15 +38,14 @@ class Subscriber extends Gtk.ScrolledWindow {
     }
 
     _bulidWidget() {
-        this._field_more_info  = this._labelMaker(_('See <span><a href="%s">%s</a></span> for pre-steps to use it.').format(Me.metadata.url, Me.metadata.url));
-        this._field_filename   = new Gtk.FileChooserButton({ title: _('Choose the config file'), action: Gtk.FileChooserAction.SAVE });
-        this._field_subs_link  = this._entryMaker('https://www.example.com', _('Subscription link (SSD only)'));
-        this._field_restart    = new Gtk.Entry({ placeholder_text: 'systemctl --user restart shadowsocks@ssss.service' });
-        this._field_enable_add = new Gtk.CheckButton({ active: gsettings.get_boolean(Fields.ENABLEADD), label: _('Addtional conf') });
-        this._field_additional = new Gtk.Entry({ placeholder_text: '{ "fast_open": true }' });
-        this._field_local_addr = new Gtk.Entry({ placeholder_text: 'local_address' });
         this._field_local_port = this._spinMaker(0, 65535, 1);
         this._field_local_time = this._spinMaker(200, 1000, 50);
+        this._field_local_addr = new Gtk.Entry({ placeholder_text: 'local_address' });
+        this._field_filename   = this._fileChooser(_('Choose the config file'), 'application/json');
+        this._field_additional = this._entryMaker('{ "fast_open": true }', _('Can be blank'));
+        this._field_subs_link  = this._linkMaker('https://www.example.com', _('Subscription link (SSD only)'));
+        this._field_restart    = this._entryMaker('systemctl --user restart shadowsocks@ssss.service', _('Command to restart'));
+        this._field_more_info  = this._labelMaker(_('See <span><a href="%s">%s</a></span> for pre-steps to use it.').format(Me.metadata.url, Me.metadata.url));
     }
 
     _bulidUI() {
@@ -55,24 +53,24 @@ class Subscriber extends Gtk.ScrolledWindow {
             margin: 30,
             orientation: Gtk.Orientation.VERTICAL,
         });
-        let btn = new Gtk.Button({ label: _('Restart') });
-        btn.set_tooltip_text(_('Apply new conf then restart service'));
-        btn.connect('clicked', this._updateConfig.bind(this));
         this.add(this._box);
         this._server = this._listFrameMaker(_('Server'), 0);
-        this._server._add(this._field_subs_link);
+        this._server._att(this._labelMaker(_('Link'), true), this._field_subs_link);
         this._server._add(this._field_more_info);
 
         this._local = this._listFrameMaker(_('Local'), 20);
         this._local._add(this._labelMaker(_('Conf file')), this._field_filename);
         this._local._add(this._labelMaker(_('Timeout (ms)')), this._field_local_time);
         this._local._add(this._labelMaker(_('Address and port')), this._field_local_addr, this._field_local_port);
-        this._local._add(this._field_enable_add, this._field_additional);
-        this._local._add(btn, this._field_restart);
+        this._local._att(this._labelMaker(_('Addtional'), true), this._field_additional);
+
+        let btn = new Gtk.Button({ label: _('Restart') });
+        btn.set_tooltip_text(_('Apply new conf then restart service'));
+        btn.connect('clicked', this._updateConfig.bind(this));
+        this._local._att(btn, this._field_restart);
     }
 
     _bindValues() {
-        gsettings.bind(Fields.ENABLEADD,  this._field_enable_add, 'active', Gio.SettingsBindFlags.DEFAULT);
         gsettings.bind(Fields.LOCALPORT,  this._field_local_port, 'value',  Gio.SettingsBindFlags.DEFAULT);
         gsettings.bind(Fields.LOCALTIME,  this._field_local_time, 'value',  Gio.SettingsBindFlags.DEFAULT);
         gsettings.bind(Fields.LOCALADDR,  this._field_local_addr, 'text',   Gio.SettingsBindFlags.DEFAULT);
@@ -87,10 +85,6 @@ class Subscriber extends Gtk.ScrolledWindow {
             gsettings.set_string(Fields.FILENAME, widget.get_filename());
         });
         this._toggleEditable(this._field_subs_link, !gsettings.get_string(Fields.SUBSLINK));
-        this._field_enable_add.connect('notify::active', widget => {
-            this._field_additional.set_sensitive(widget.active );
-        });
-        this._field_additional.set_sensitive(this._field_enable_add.active);
     }
 
     _toggleEditable(entry, edit) {
@@ -122,7 +116,7 @@ class Subscriber extends Gtk.ScrolledWindow {
             local.local_address = gsettings.get_string(Fields.LOCALADDR);
         local.local_port = gsettings.get_uint(Fields.LOCALPORT);
         local.timeout = gsettings.get_uint(Fields.LOCALTIME);
-        if(gsettings.get_boolean(Fields.ENABLEADD))
+        if(gsettings.get_string(Fields.ADDITIONAL))
             try {
                 Object.assign(local, JSON.parse(gsettings.get_string(Fields.ADDITIONAL)));
             } catch(e) {
@@ -156,20 +150,28 @@ class Subscriber extends Gtk.ScrolledWindow {
         frame.add(frame.grid);
         frame._add = (x, y, z) => {
             const hbox = new Gtk.Box();
-            if(z) {
-                hbox.pack_start(x, true, true, 4);
-                hbox.pack_start(y, false, false, 4);
-                hbox.pack_start(z, false, false, 4);
-            } else if(y) {
-                let etr = (y instanceof Gtk.Entry) && !y.adjustment;
-                hbox.pack_start(x, !etr, !etr, 4);
-                hbox.pack_start(y, etr, etr, 4);
-            } else {
-                hbox.pack_start(x, true, true, 4);
-            }
-            frame.grid.attach(hbox, 0, frame.grid._row++, 1, 1);
+            hbox.pack_start(x, true, true, 4);
+            if(y) hbox.pack_start(y, false, false, 4)
+            if(z) hbox.pack_start(z, false, false, 4)
+            frame.grid.attach(hbox, 0, frame.grid._row++, 2, 1);
         }
+        frame._att = (x, y) => {
+            let r = frame.grid._row++;
+            frame.grid.attach(x, 0, r, 1, 1);
+            frame.grid.attach(y, 1, r, 1, 1);
+        }
+
         return frame;
+    }
+
+    _fileChooser(title, mime) {
+        let filter = new Gtk.FileFilter();
+        filter.add_mime_type(mime);
+        return new Gtk.FileChooserButton({
+            title: title,
+            filter: filter,
+            action: Gtk.FileChooserAction.OPEN,
+        });
     }
 
     _spinMaker(l, u, s) {
@@ -182,16 +184,16 @@ class Subscriber extends Gtk.ScrolledWindow {
         });
     }
 
-    _labelMaker(x) {
+    _labelMaker(x, y) {
         return new Gtk.Label({
             label: x,
-            hexpand: true,
             use_markup: true,
+            hexpand: y ? false : true,
             halign: Gtk.Align.START,
         });
     }
 
-    _entryMaker(x, y) {
+    _linkMaker(x, y) {
         let entry = new Gtk.Entry({
             hexpand: true,
             visibility: false,
@@ -203,6 +205,18 @@ class Subscriber extends Gtk.ScrolledWindow {
         });
         entry.connect('icon-press', () => {
             this._toggleEditable(entry, !entry.get_editable());
+        });
+        return entry;
+    }
+
+    _entryMaker(x, y) {
+        let entry = new Gtk.Entry({
+            hexpand: true,
+            placeholder_text: x,
+            secondary_icon_sensitive: true,
+            secondary_icon_tooltip_text: y,
+            secondary_icon_activatable: true,
+            secondary_icon_name: "dialog-information-symbolic",
         });
         return entry;
     }

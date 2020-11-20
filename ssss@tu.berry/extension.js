@@ -57,7 +57,7 @@ class Shadowsocks extends GObject.Object {
             local.local_address = gsettings.get_string(Fields.LOCALADDR);
         local.local_port = gsettings.get_uint(Fields.LOCALPORT);
         local.timeout = gsettings.get_uint(Fields.LOCALTIME);
-        if(gsettings.get_boolean(Fields.ENABLEADD))
+        if(gsettings.get_string(Fields.ADDITIONAL))
             try {
                 Object.assign(local, JSON.parse(gsettings.get_string(Fields.ADDITIONAL)));
             } catch(e) {

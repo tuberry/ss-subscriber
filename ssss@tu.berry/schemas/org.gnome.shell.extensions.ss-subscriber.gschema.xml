@@ -47,9 +47,5 @@
             <default>""</default>
             <summary>additional configs</summary>
         </key>
-        <key type="b" name="enable-addtional">
-            <default>false</default>
-            <summary>enable additional configs or not</summary>
-        </key>
     </schema>
 </schemalist>
