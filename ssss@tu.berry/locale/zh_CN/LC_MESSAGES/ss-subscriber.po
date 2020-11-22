@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-11-20 21:06+0800\n"
+"POT-Creation-Date: 2020-11-22 20:50+0800\n"
 "PO-Revision-Date: 2020-09-06 13:49+0800\n"
 "Last-Translator: tuberry <tuberry@example.com>\n"
 "Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
@@ -28,83 +28,91 @@ msgstr "手动"
 msgid "Disable"
 msgstr "禁用"
 
-#: extension.js:97
+#: extension.js:101
 msgid "Start synchronizing."
 msgstr "开始同步。"
 
-#: extension.js:117
+#: extension.js:134
 msgid "Error: Subscription content is empty."
 msgstr "错误：订阅内容为空。"
 
-#: extension.js:122
+#: extension.js:139
 msgid "Synchronized successfully."
 msgstr "订阅更新成功。"
 
-#: extension.js:190
+#: extension.js:243
 msgid "Proxy: "
 msgstr "代理："
 
-#: extension.js:205
+#: extension.js:258
 msgid "Airport: "
 msgstr "提供商："
 
-#: extension.js:216
+#: extension.js:269
 msgid "Sync Subscription"
 msgstr "更新订阅"
 
 #: prefs.js:44
-msgid "Choose the config file"
-msgstr "选取配置文件"
-
-#: prefs.js:45
 msgid "Can be blank"
 msgstr "可以为空"
 
+#: prefs.js:45
+msgid "Choose the config file"
+msgstr "选取配置文件"
+
 #: prefs.js:46
+msgid "JSON format, can be blank"
+msgstr "JSON 格式，可以为空"
+
+#: prefs.js:47
 msgid "Subscription link (SSD only)"
 msgstr "订阅链接(仅支持 SSD)"
 
-#: prefs.js:47
+#: prefs.js:48
 msgid "Command to restart"
 msgstr "重启命令"
 
-#: prefs.js:48
+#: prefs.js:49
 #, javascript-format
 msgid "See <span><a href=\"%s\">%s</a></span> for pre-steps to use it."
 msgstr "前置步骤参见 <span><a href=\"%s\">%s</a></span>。"
 
-#: prefs.js:57
+#: prefs.js:50
+msgid "Auto update subscription (not config file)"
+msgstr "启动时自动更新订阅（但不改变配置文件）"
+
+#: prefs.js:59
 msgid "Server"
 msgstr "远端"
 
-#: prefs.js:58
+#: prefs.js:61
 msgid "Link"
 msgstr "链接"
 
-#: prefs.js:61
+#: prefs.js:64
 msgid "Local"
 msgstr "本地"
 
-#: prefs.js:62
+#: prefs.js:65
 msgid "Conf file"
 msgstr "配置文件"
 
-#: prefs.js:63
-msgid "Timeout (ms)"
-msgstr "超时时间（ms）"
+#: prefs.js:66
+msgid "Timeout"
+msgstr "超时时间"
 
-#: prefs.js:64
+#: prefs.js:67
 msgid "Address and port"
 msgstr "地址端口"
 
-#: prefs.js:65
+#: prefs.js:68
 msgid "Addtional"
 msgstr "附加设置"
 
-#: prefs.js:67
-msgid "Restart"
-msgstr "重启"
+#: prefs.js:70
+msgid "Apply"
+msgstr "应用"
 
-#: prefs.js:68
-msgid "Apply new conf then restart service"
+#: prefs.js:71
+msgid "Apply new config then restart service"
 msgstr "应用设置后重启服务"

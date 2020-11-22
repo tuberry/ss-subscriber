@@ -27,6 +27,10 @@ class Shadowsocks extends GObject.Object {
         return gsettings.get_string(Fields.SUBSLINK);
     }
 
+    get _autosubs() {
+        return gsettings.get_boolean(Fields.AUTOSUBS)
+    }
+
     get _subscache() {
         let fix = x => x.replace(/-/g, '+').replace(/_/g, '/');
         let fill = x => x.length % 4 === 0 ? x : x + "=".repeat(4 - x.length % 4);
@@ -112,6 +116,19 @@ class Shadowsocks extends GObject.Object {
         });
     }
 
+    _autoSyncSSD() {
+        if(!this._subslink) return;
+        let session = new Soup.SessionAsync();
+        Soup.Session.prototype.add_feature.call(session, new Soup.ProxyResolverDefault());
+        let uri = new Soup.URI(this._subslink);
+        let request = Soup.Message.new_from_uri('GET', uri);
+        session.queue_message(request, (session, message) => {
+            if(message.status_code != 200) return;
+            if(!message.response_body.data.trim()) return;
+            this._subscache = message.response_body.data.trim();
+        });
+    }
+
     _parseSSD(subs) {
         if(!subs) {
             Main.notifyError(Me.metadata.name, _('Error: Subscription content is empty.'));
@@ -120,17 +137,6 @@ class Shadowsocks extends GObject.Object {
         this._subscache = subs;
         if(gsettings.get_boolean('gen-all')) this._genAll();
         Main.notify(Me.metadata.name, _('Synchronized successfully.'));
-        this._updateMenu();
-    }
-
-    _addButton() {
-        this._button = new PanelMenu.Button(null);
-        this._button.add_actor(new St.Icon({
-            gicon: new Gio.FileIcon({ file: Gio.File.new_for_path(PAPER_PLANE_ICON) }),
-            style_class: 'ss-subscriber system-status-icon'
-        }));
-        this._button.add_style_class_name(this._proxymode);
-        Main.panel.addToStatusArea(Me.metadata.uuid, this._button);
         this._updateMenu();
     }
 
@@ -143,6 +149,53 @@ class Shadowsocks extends GObject.Object {
         } else {
             // Main.notifyError(Me.metadata.name, _('Subscription link is missing.'));
             return false;
+        }
+    }
+
+    _restartService() {
+        if(gsettings.get_boolean('gen-all')) {
+            this._genAll();
+        } else {
+            let conf = JSON.parse(this._subscache).servers.find(x => x.remarks == this._servername);
+            if(conf) this._genConfig(conf);
+            Util.spawnCommandLine(this._restart);
+        }
+    }
+
+    _genConfig(config) {
+        let conf = {};
+        let subs = JSON.parse(this._subscache);
+        conf.server_port = conf.server_port ? conf.server_port : subs.port;
+        conf.password = conf.password ? conf.password : subs.password;
+        conf.method = conf.method ? conf.method : subs.encryption;
+        Object.assign(conf, config);
+        Object.assign(conf, this._localConf);
+        try {
+            let file = Gio.File.new_for_path(this._filename);
+            file.replace_contents(JSON.stringify(conf, null, 2), null, false, Gio.FileCreateFlags.PRIVATE, null);
+            Util.spawnCommandLine(this._restart);
+        } catch(e) {
+            Main.notifyError(Me.metadata.name, e.message);
+        }
+        this._servername = conf.remarks;
+        this._updateMenu();
+    }
+
+    _genAll() {
+        let conf = {};
+        conf.server = [];
+        let subs = JSON.parse(this._subscache);
+        subs.servers.forEach(x => { if(x.server != '127.0.0.1') conf.server.push(x.server); });
+        conf.server_port = conf.server_port ? conf.server_port : subs.port;
+        conf.password = conf.password ? conf.password : subs.password;
+        conf.method = conf.method ? conf.method : subs.encryption;
+        Object.assign(conf, this._localConf);
+        try {
+            let file = Gio.File.new_for_path(this._filename);
+            file.replace_contents(JSON.stringify(conf, null, 2), null, false, Gio.FileCreateFlags.PRIVATE, null);
+            Util.spawnCommandLine(this._restart);
+        } catch(e) {
+            Main.notifyError(Me.metadata.name, e.message);
         }
     }
 
@@ -162,7 +215,7 @@ class Shadowsocks extends GObject.Object {
         addButtonItem('emblem-system-symbolic', () => { item._getTopMenu().close(); ExtensionUtils.openPrefs(); });
         addButtonItem('view-refresh-symbolic', () => {
             item._getTopMenu().close();
-            Util.spawnCommandLine(this._restart);
+            this._restartService();
         });
         addButtonItem('face-cool-symbolic', () => { gsettings.set_boolean(Fields.LITEMODE, !this._litemode); });
         addButtonItem('network-workgroup-symbolic', () => {
@@ -224,44 +277,19 @@ class Shadowsocks extends GObject.Object {
         this._button.menu.addMenuItem(this._settingItem());
     }
 
-    _genConfig(config) {
-        let conf = {};
-        let subs = JSON.parse(this._subscache);
-        conf.server_port = conf.server_port ? conf.server_port : subs.port;
-        conf.password = conf.password ? conf.password : subs.password;
-        conf.method = conf.method ? conf.method : subs.encryption;
-        Object.assign(conf, config);
-        Object.assign(conf, this._localConf);
-        try {
-            let file = Gio.File.new_for_path(this._filename);
-            file.replace_contents(JSON.stringify(conf, null, 2), null, false, Gio.FileCreateFlags.PRIVATE, null);
-            Util.spawnCommandLine(this._restart);
-        } catch(e) {
-            Main.notifyError(Me.metadata.name, e.message);
-        }
-        this._servername = conf.remarks;
+    _addButton() {
+        this._button = new PanelMenu.Button(null);
+        this._button.add_actor(new St.Icon({
+            gicon: new Gio.FileIcon({ file: Gio.File.new_for_path(PAPER_PLANE_ICON) }),
+            style_class: 'ss-subscriber system-status-icon'
+        }));
+        this._button.add_style_class_name(this._proxymode);
+        Main.panel.addToStatusArea(Me.metadata.uuid, this._button);
         this._updateMenu();
     }
 
-    _genAll() {
-        let conf = {};
-        conf.server = [];
-        let subs = JSON.parse(this._subscache);
-        subs.servers.forEach(x => { if(x.server != '127.0.0.1') conf.server.push(x.server); });
-        conf.server_port = conf.server_port ? conf.server_port : subs.port;
-        conf.password = conf.password ? conf.password : subs.password;
-        conf.method = conf.method ? conf.method : subs.encryption;
-        Object.assign(conf, this._localConf);
-        try {
-            let file = Gio.File.new_for_path(this._filename);
-            file.replace_contents(JSON.stringify(conf, null, 2), null, false, Gio.FileCreateFlags.PRIVATE, null);
-            Util.spawnCommandLine(this._restart);
-        } catch(e) {
-            Main.notifyError(Me.metadata.name, e.message);
-        }
-    }
-
     enable() {
+        if(this._autosubs) this._autoSyncSSD();
         this._proxymodeID = proxyGsettings.connect('changed::' + Fields.PROXYMODE, this._onModeChanged.bind(this));
         this._litemodeId = gsettings.connect('changed::' + Fields.LITEMODE, this._updateMenu.bind(this));
         this._addButton();

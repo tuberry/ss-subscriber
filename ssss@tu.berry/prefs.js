@@ -16,6 +16,7 @@ var Fields = {
     LOCALPORT:  'local-port',
     FILENAME:   'config-file',
     LOCALTIME:  'local-timeout',
+    AUTOSUBS:   'auto-subscribe',
     SERVERNAME: 'server-remarks',
     SUBSLINK:   'subscribe-link',
     RESTART:    'restart-command',
@@ -39,13 +40,14 @@ class Subscriber extends Gtk.ScrolledWindow {
 
     _bulidWidget() {
         this._field_local_port = this._spinMaker(0, 65535, 1);
-        this._field_local_time = this._spinMaker(200, 1000, 50);
-        this._field_local_addr = new Gtk.Entry({ placeholder_text: 'local_address' });
+        this._field_local_time = this._spinMaker(0, 1000, 50);
+        this._field_local_addr = this._entryMaker('local_address', _('Can be blank'), true);
         this._field_filename   = this._fileChooser(_('Choose the config file'), 'application/json');
-        this._field_additional = this._entryMaker('{ "fast_open": true }', _('Can be blank'));
+        this._field_additional = this._entryMaker('{ "fast_open": true }', _('JSON format, can be blank'));
         this._field_subs_link  = this._linkMaker('https://www.example.com', _('Subscription link (SSD only)'));
         this._field_restart    = this._entryMaker('systemctl --user restart shadowsocks@ssss.service', _('Command to restart'));
         this._field_more_info  = this._labelMaker(_('See <span><a href="%s">%s</a></span> for pre-steps to use it.').format(Me.metadata.url, Me.metadata.url));
+        this._field_auto_subs  = new Gtk.CheckButton({ label: _('Auto update subscription (not config file)'), active: gsettings.get_boolean(Fields.AUTOSUBS), hexpand: true });
     }
 
     _bulidUI() {
@@ -55,22 +57,24 @@ class Subscriber extends Gtk.ScrolledWindow {
         });
         this.add(this._box);
         this._server = this._listFrameMaker(_('Server'), 0);
+        this._server._add(this._field_auto_subs);
         this._server._att(this._labelMaker(_('Link'), true), this._field_subs_link);
         this._server._add(this._field_more_info);
 
         this._local = this._listFrameMaker(_('Local'), 20);
         this._local._add(this._labelMaker(_('Conf file')), this._field_filename);
-        this._local._add(this._labelMaker(_('Timeout (ms)')), this._field_local_time);
+        this._local._add(this._labelMaker(_('Timeout')), this._field_local_time);
         this._local._add(this._labelMaker(_('Address and port')), this._field_local_addr, this._field_local_port);
         this._local._att(this._labelMaker(_('Addtional'), true), this._field_additional);
 
-        let btn = new Gtk.Button({ label: _('Restart') });
-        btn.set_tooltip_text(_('Apply new conf then restart service'));
+        let btn = new Gtk.Button({ label: _('Apply') });
+        btn.set_tooltip_text(_('Apply new config then restart service'));
         btn.connect('clicked', this._updateConfig.bind(this));
         this._local._att(btn, this._field_restart);
     }
 
     _bindValues() {
+        gsettings.bind(Fields.AUTOSUBS,   this._field_auto_subs, 'active',  Gio.SettingsBindFlags.DEFAULT);
         gsettings.bind(Fields.LOCALPORT,  this._field_local_port, 'value',  Gio.SettingsBindFlags.DEFAULT);
         gsettings.bind(Fields.LOCALTIME,  this._field_local_time, 'value',  Gio.SettingsBindFlags.DEFAULT);
         gsettings.bind(Fields.LOCALADDR,  this._field_local_addr, 'text',   Gio.SettingsBindFlags.DEFAULT);
@@ -150,7 +154,7 @@ class Subscriber extends Gtk.ScrolledWindow {
         frame.add(frame.grid);
         frame._add = (x, y, z) => {
             const hbox = new Gtk.Box();
-            hbox.pack_start(x, true, true, 4);
+            hbox.pack_start(x, true, true, 0);
             if(y) hbox.pack_start(y, false, false, 4)
             if(z) hbox.pack_start(z, false, false, 4)
             frame.grid.attach(hbox, 0, frame.grid._row++, 2, 1);
@@ -171,6 +175,14 @@ class Subscriber extends Gtk.ScrolledWindow {
             title: title,
             filter: filter,
             action: Gtk.FileChooserAction.OPEN,
+        });
+    }
+
+    _checkMaker(active, label) {
+        return new Gtk.CheckButton({
+            expand: true,
+            label: label,
+            active: active,
         });
     }
 
@@ -209,10 +221,10 @@ class Subscriber extends Gtk.ScrolledWindow {
         return entry;
     }
 
-    _entryMaker(x, y) {
+    _entryMaker(x, y, z) {
         let entry = new Gtk.Entry({
-            hexpand: true,
             placeholder_text: x,
+            hexpand: z ? false : true,
             secondary_icon_sensitive: true,
             secondary_icon_tooltip_text: y,
             secondary_icon_activatable: true,

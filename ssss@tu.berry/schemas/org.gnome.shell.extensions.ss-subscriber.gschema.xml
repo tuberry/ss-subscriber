@@ -5,6 +5,10 @@
             <default>false</default>
             <summary>menu lite mode</summary>
         </key>
+        <key type="b" name="auto-subscribe">
+            <default>false</default>
+            <summary>update subscribe caches when enable</summary>
+        </key>
         <key type="b" name="gen-all">
             <default>false</default>
             <summary>genAll</summary>
@@ -39,7 +43,7 @@
             <summary>config file local addr</summary>
         </key>
         <key type="u" name="local-timeout">
-            <range min="200" max="1000"/>
+            <range min="0" max="1000"/>
             <default>300</default>
             <summary>config file local timeout</summary>
         </key>
