@@ -47,30 +47,6 @@ class Shadowsocks extends GObject.Object {
         return gsettings.get_string(Fields.SERVERNAME) || 'NONE';
     }
 
-    get _filename() {
-        return gsettings.get_string(Fields.FILENAME);
-    }
-
-    get _restart() {
-        return gsettings.get_string(Fields.RESTART);
-    }
-
-    get _localConf() {
-        let local = {};
-        if(gsettings.get_string(Fields.LOCALADDR))
-            local.local_address = gsettings.get_string(Fields.LOCALADDR);
-        local.local_port = gsettings.get_uint(Fields.LOCALPORT);
-        local.timeout = gsettings.get_uint(Fields.LOCALTIME);
-        if(gsettings.get_string(Fields.ADDITIONAL))
-            try {
-                Object.assign(local, JSON.parse(gsettings.get_string(Fields.ADDITIONAL)));
-            } catch(e) {
-                Main.notifyError(Me.metadata.name, "Error: local conf -- %s".format(e.message));
-            }
-
-        return local;
-    }
-
     get _proxymode() {
         return proxyGsettings.get_string(Fields.PROXYMODE);
     }
@@ -81,10 +57,33 @@ class Shadowsocks extends GObject.Object {
 
     set _subscache(cache) {
         gsettings.set_string(Fields.SUBSCACHE, cache);
+        if(gsettings.get_boolean('gen-all')) this._genConfig();
     }
 
     set _servername(name) {
         gsettings.set_string(Fields.SERVERNAME, name);
+    }
+
+    _fetchSubs() {
+        return new Promise((resolve, reject) => {
+            try{
+                if(!this._subslink) reject(_('Subscription link is missing.'));
+                let session = new Soup.SessionAsync();
+                Soup.Session.prototype.add_feature.call(session, new Soup.ProxyResolverDefault());
+                let uri = new Soup.URI(this._subslink);
+                let request = Soup.Message.new_from_uri('GET', uri);
+                session.queue_message(request, (session, message) => {
+                    if(message.status_code == 200) {
+                        let data = message.response_body.data.trim();
+                        data ? resolve(data) : reject(_('Error: Subscription content is empty.'));
+                    } else {
+                        reject('Error: HTTP status code %d'.format(message.status_code));
+                    }
+                });
+            } catch(e) {
+                reject(e.message);
+            }
+        });
     }
 
     _onModeChanged() {
@@ -94,109 +93,69 @@ class Shadowsocks extends GObject.Object {
     }
 
     _syncSubscribe() {
-        if(!this._subslink) {
-            this._subscache = '';
-            return;
-        }
         Main.notify(Me.metadata.name, _('Start synchronizing.'));
-        let session = new Soup.SessionAsync();
-        Soup.Session.prototype.add_feature.call(session, new Soup.ProxyResolverDefault());
-        let uri = new Soup.URI(this._subslink);
-        let request = Soup.Message.new_from_uri('GET', uri);
-        session.queue_message(request, (session, message) => {
+        this._fetchSubs().then(scc => {
+            this._subscache = scc;
+            this._updateMenu();
+            Main.notify(Me.metadata.name, _('Synchronized successfully.'));
+        }).catch(err => {
+            Main.notifyError(Me.metadata.name, err);
+        });
+    }
+
+    _genConfig(config) {
+        return new Promise((resolve, reject) => {
             try {
-                if (message.status_code == 200) {
-                    this._parseSSD(message.response_body.data.trim());
+                let subs = JSON.parse(this._subscache);
+                let conf = { server: [], server_port: subs.port, password: subs.password, method: subs.encryption, };
+                if(config) {
+                    Object.assign(conf, config);
                 } else {
-                    Main.notifyError(Me.metadata.name, 'Error: %s status code %d'.format(uri.scheme.toUpperCase(), message.status_code));
+                    conf.server = subs.servers.map(x => x.server).filter(x => x != '127.0.0.1');
                 }
+                let local = { local_port: gsettings.get_uint(Fields.LOCALPORT), timeout: gsettings.get_uint(Fields.LOCALTIME), };
+                if(gsettings.get_string(Fields.LOCALADDR))
+                    local.local_address = gsettings.get_string(Fields.LOCALADDR);
+                if(gsettings.get_string(Fields.ADDITIONAL))
+                    Object.assign(local, JSON.parse(gsettings.get_string(Fields.ADDITIONAL)));
+                Object.assign(conf, local);
+                let filename = gsettings.get_string(Fields.FILENAME);
+                if(!filename) throw new Error(_('Config file is not set'));
+                Gio.File.new_for_path(filename).replace_contents(JSON.stringify(conf, null, 2), null, false, Gio.FileCreateFlags.PRIVATE, null);
+                resolve();
             } catch(e) {
-                Main.notifyError(Me.metadata.name, e.message);
+                reject(e.message);
             }
         });
     }
 
-    _autoSyncSSD() {
-        if(!this._subslink) return;
-        let session = new Soup.SessionAsync();
-        Soup.Session.prototype.add_feature.call(session, new Soup.ProxyResolverDefault());
-        let uri = new Soup.URI(this._subslink);
-        let request = Soup.Message.new_from_uri('GET', uri);
-        session.queue_message(request, (session, message) => {
-            if(message.status_code != 200) return;
-            if(!message.response_body.data.trim()) return;
-            this._subscache = message.response_body.data.trim();
-        });
-    }
-
-    _parseSSD(subs) {
-        if(!subs) {
-            Main.notifyError(Me.metadata.name, _('Error: Subscription content is empty.'));
-            return;
-        }
-        this._subscache = subs;
-        if(gsettings.get_boolean('gen-all')) this._genAll();
-        Main.notify(Me.metadata.name, _('Synchronized successfully.'));
-        this._updateMenu();
-    }
-
     _checkCache() {
-        if(this._subscache.length) {
+        if(this._subscache) {
             return true;
-        } else if(this._subslink.length) {
+        } else if(this._subslink) {
             this._syncSubscribe();
             return false;
         } else {
-            // Main.notifyError(Me.metadata.name, _('Subscription link is missing.'));
             return false;
         }
+    }
+
+    _restart() {
+        Util.spawnCommandLine(gsettings.get_string(Fields.RESTART));
     }
 
     _restartService() {
         if(gsettings.get_boolean('gen-all')) {
-            this._genAll();
+            this._genConfig().then(this._restart);
         } else {
             let conf = JSON.parse(this._subscache).servers.find(x => x.remarks == this._servername);
-            if(conf) this._genConfig(conf);
-            Util.spawnCommandLine(this._restart);
+            if(conf) this._genConfig(conf).then(this._restart);
         }
     }
 
-    _genConfig(config) {
-        let conf = {};
-        let subs = JSON.parse(this._subscache);
-        conf.server_port = conf.server_port ? conf.server_port : subs.port;
-        conf.password = conf.password ? conf.password : subs.password;
-        conf.method = conf.method ? conf.method : subs.encryption;
-        Object.assign(conf, config);
-        Object.assign(conf, this._localConf);
-        try {
-            let file = Gio.File.new_for_path(this._filename);
-            file.replace_contents(JSON.stringify(conf, null, 2), null, false, Gio.FileCreateFlags.PRIVATE, null);
-            Util.spawnCommandLine(this._restart);
-        } catch(e) {
-            Main.notifyError(Me.metadata.name, e.message);
-        }
-        this._servername = conf.remarks;
-        this._updateMenu();
-    }
-
-    _genAll() {
-        let conf = {};
-        conf.server = [];
-        let subs = JSON.parse(this._subscache);
-        subs.servers.forEach(x => { if(x.server != '127.0.0.1') conf.server.push(x.server); });
-        conf.server_port = conf.server_port ? conf.server_port : subs.port;
-        conf.password = conf.password ? conf.password : subs.password;
-        conf.method = conf.method ? conf.method : subs.encryption;
-        Object.assign(conf, this._localConf);
-        try {
-            let file = Gio.File.new_for_path(this._filename);
-            file.replace_contents(JSON.stringify(conf, null, 2), null, false, Gio.FileCreateFlags.PRIVATE, null);
-            Util.spawnCommandLine(this._restart);
-        } catch(e) {
-            Main.notifyError(Me.metadata.name, e.message);
-        }
+    _networkSetting() {
+        let network = Shell.AppSystem.get_default().lookup_app('gnome-network-panel.desktop');
+        if(network) network.activate();
     }
 
     _settingItem() {
@@ -213,59 +172,51 @@ class Shadowsocks extends GObject.Object {
             hbox.add_child(btn);
         }
         addButtonItem('emblem-system-symbolic', () => { item._getTopMenu().close(); ExtensionUtils.openPrefs(); });
-        addButtonItem('view-refresh-symbolic', () => {
-            item._getTopMenu().close();
-            this._restartService();
-        });
-        addButtonItem('face-cool-symbolic', () => { gsettings.set_boolean(Fields.LITEMODE, !this._litemode); });
-        addButtonItem('network-workgroup-symbolic', () => {
-            item._getTopMenu().close();
-            Shell.AppSystem.get_default().lookup_app('gnome-network-panel.desktop').activate();
-        });
+        addButtonItem('view-refresh-symbolic', () => { item._getTopMenu().close(); this._restartService(); });
+        addButtonItem('face-cool-symbolic', () => { gsettings.set_boolean(Fields.LITEMODE, !this._litemode); this._updateMenu(); });
+        addButtonItem('network-workgroup-symbolic', () => { item._getTopMenu().close(); this._networkSetting(); });
         item.add_child(hbox);
         return item;
+    }
+
+    _proxyItems() {
+        let items = [];
+        for(let x in this.MODES) {
+            let item = new PopupMenu.PopupMenuItem(this.MODES[x]);
+            if(x === this._proxymode) {
+                this._tmpMode = x;
+                item.setOrnament(PopupMenu.Ornament.DOT);
+            } else {
+                item.connect("activate", () => { item._getTopMenu().close(); this._proxymode = x; });
+            }
+            items.push(item);
+        }
+        return items;
     }
 
     _updateMenu() {
         this._button.menu.removeAll();
         if(this._litemode) {
-            for(let x in this.MODES) {
-                let item = new PopupMenu.PopupMenuItem(this.MODES[x]);
-                if(x === this._proxymode) {
-                    this._tmpMode = x;
-                    item.setOrnament(PopupMenu.Ornament.DOT);
-                } else {
-                    item.connect("activate", () => { item._getTopMenu().close(); this._proxymode = x; });
-                }
-                this._button.menu.addMenuItem(item);
-            }
+            this._proxyItems().forEach(item => { this._button.menu.addMenuItem(item); });
         } else {
             let proxy = new PopupMenu.PopupSubMenuMenuItem(_("Proxy: ") + this.MODES[this._proxymode]);
-            for(let x in this.MODES) {
-                let item = new PopupMenu.PopupMenuItem(this.MODES[x]);
-                if(x === this._proxymode) {
-                    this._tmpMode = x;
-                    item.setOrnament(PopupMenu.Ornament.DOT);
-                } else {
-                    item.connect("activate", () => { item._getTopMenu().close(); this._proxymode = x; });
-                }
-                proxy.menu.addMenuItem(item);
-            }
+            this._proxyItems().forEach(item => { proxy.menu.addMenuItem(item); });
             this._button.menu.addMenuItem(proxy);
 
             if(this._checkCache()) {
                 let subs = JSON.parse(this._subscache);
                 let servers = new PopupMenu.PopupSubMenuMenuItem(_('Airport: ') + "%d/%d".format(subs.traffic_used, subs.traffic_total));
-                this._button.menu.addMenuItem(servers);
                 subs.servers.forEach(x => {
                     let item = new PopupMenu.PopupMenuItem(x.remarks, { style_class: 'ss-subscriber-item' });
                     if(x.remarks === this._servername) {
                         item.setOrnament(PopupMenu.Ornament.DOT);
                     } else {
-                       item.connect("activate", () => { item._getTopMenu().close(); this._genConfig(x); });
+                       item.connect("activate", () => { item._getTopMenu().close(); this._genConfig(x).then(this._restart); });
                     }
                     servers.menu.addMenuItem(item);
                 });
+                this._button.menu.addMenuItem(servers);
+
                 let sync = new PopupMenu.PopupMenuItem(_("Sync Subscription"));
                 sync.connect("activate", () => { sync._getTopMenu().close(); this._syncSubscribe(); });
                 this._button.menu.addMenuItem(sync);
@@ -273,7 +224,6 @@ class Shadowsocks extends GObject.Object {
         }
 
         this._button.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem(''));
-
         this._button.menu.addMenuItem(this._settingItem());
     }
 
@@ -289,15 +239,12 @@ class Shadowsocks extends GObject.Object {
     }
 
     enable() {
-        if(this._autosubs) this._autoSyncSSD();
+        if(this._autosubs) this._fetchSubs().then(scc => { this._subscache = scc; });
         this._proxymodeID = proxyGsettings.connect('changed::' + Fields.PROXYMODE, this._onModeChanged.bind(this));
-        this._litemodeId = gsettings.connect('changed::' + Fields.LITEMODE, this._updateMenu.bind(this));
         this._addButton();
     }
 
     disable() {
-        for(let x in this)
-            if(RegExp(/^_.+Id$/).test(x)) eval('if(this.%s) gsettings.disconnect(this.%s), this.%s = 0;'.format(x, x, x));
         if(this._proxymodeID)
             proxyGsettings.disconnect(this._proxymodeID), this._proxymodeID = 0;
         this._button.destroy();

@@ -47,7 +47,7 @@ class Subscriber extends Gtk.ScrolledWindow {
         this._field_subs_link  = this._linkMaker('https://www.example.com', _('Subscription link (SSD only)'));
         this._field_restart    = this._entryMaker('systemctl --user restart shadowsocks@ssss.service', _('Command to restart'));
         this._field_more_info  = this._labelMaker(_('See <span><a href="%s">%s</a></span> for pre-steps to use it.').format(Me.metadata.url, Me.metadata.url));
-        this._field_auto_subs  = new Gtk.CheckButton({ label: _('Auto update subscription (not config file)'), active: gsettings.get_boolean(Fields.AUTOSUBS), hexpand: true });
+        this._field_auto_subs  = new Gtk.CheckButton({ label: _('Auto update subscription (not config file)'), hexpand: true });
     }
 
     _bulidUI() {
@@ -99,9 +99,9 @@ class Subscriber extends Gtk.ScrolledWindow {
     _updateConfig() {
         let [ok, content] = GLib.file_get_contents(gsettings.get_string(Fields.FILENAME));
         if(!ok) return;
-        let conf = JSON.parse(content);
-        Object.assign(conf, this._localConf);
         try {
+            let conf = JSON.parse(content);
+            Object.assign(conf, this._localConf);
             let file = Gio.File.new_for_path(gsettings.get_string(Fields.FILENAME));
             file.replace_contents(JSON.stringify(conf, null, 2), null, false, Gio.FileCreateFlags.PRIVATE, null);
             let proc = new Gio.Subprocess({
@@ -175,14 +175,6 @@ class Subscriber extends Gtk.ScrolledWindow {
             title: title,
             filter: filter,
             action: Gtk.FileChooserAction.OPEN,
-        });
-    }
-
-    _checkMaker(active, label) {
-        return new Gtk.CheckButton({
-            expand: true,
-            label: label,
-            active: active,
         });
     }
 

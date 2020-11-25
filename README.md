@@ -45,7 +45,7 @@ systemctl --user enable shadowsocks-libev@ssss.service --now
 ```
 
 ### fill blanks
-![image](https://user-images.githubusercontent.com/17917040/99398455-675ff900-291f-11eb-9f31-55ad55cdc54f.png)
+![image](https://user-images.githubusercontent.com/17917040/99905245-aa98de00-2d0a-11eb-9ce4-6233293ee011.png)
 
 ## Acknowledgements
 * [proxy-switcher](https://github.com/tomflannaghan/proxy-switcher): network setting button
