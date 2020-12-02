@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Ss Subscriber\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-11-22 20:53+0800\n"
+"POT-Creation-Date: 2020-12-02 13:23+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,39 +17,47 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: extension.js:23
+#: extension.js:37
 msgid "Automatic"
 msgstr ""
 
-#: extension.js:23
+#: extension.js:37
 msgid "Manual"
 msgstr ""
 
-#: extension.js:23
+#: extension.js:37
 msgid "Disable"
 msgstr ""
 
-#: extension.js:101
-msgid "Start synchronizing."
+#: extension.js:71
+msgid "Subscription link is missing."
 msgstr ""
 
-#: extension.js:134
+#: extension.js:79
 msgid "Error: Subscription content is empty."
 msgstr ""
 
-#: extension.js:139
+#: extension.js:97
+msgid "Start synchronizing."
+msgstr ""
+
+#: extension.js:101
 msgid "Synchronized successfully."
 msgstr ""
 
-#: extension.js:243
+#: extension.js:123
+msgid "Config file is not set."
+msgstr ""
+
+#: extension.js:198
 msgid "Proxy: "
 msgstr ""
 
-#: extension.js:258
+#: extension.js:204
 msgid "Airport: "
 msgstr ""
 
-#: extension.js:269
+#: extension.js:216
 msgid "Sync Subscription"
 msgstr ""
 
@@ -87,7 +95,7 @@ msgid "Server"
 msgstr ""
 
 #: prefs.js:61
-msgid "Link"
+msgid "Subs link"
 msgstr ""
 
 #: prefs.js:64

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-11-22 20:50+0800\n"
+"POT-Creation-Date: 2020-12-02 13:23+0800\n"
 "PO-Revision-Date: 2020-09-06 13:49+0800\n"
 "Last-Translator: tuberry <tuberry@example.com>\n"
 "Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
@@ -16,39 +16,47 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: extension.js:23
+#: extension.js:37
 msgid "Automatic"
 msgstr "自动"
 
-#: extension.js:23
+#: extension.js:37
 msgid "Manual"
 msgstr "手动"
 
-#: extension.js:23
+#: extension.js:37
 msgid "Disable"
 msgstr "禁用"
 
-#: extension.js:101
-msgid "Start synchronizing."
-msgstr "开始同步。"
+#: extension.js:71
+msgid "Subscription link is missing."
+msgstr "未设置订阅链接"
 
-#: extension.js:134
+#: extension.js:79
 msgid "Error: Subscription content is empty."
 msgstr "错误：订阅内容为空。"
 
-#: extension.js:139
+#: extension.js:97
+msgid "Start synchronizing."
+msgstr "开始同步。"
+
+#: extension.js:101
 msgid "Synchronized successfully."
 msgstr "订阅更新成功。"
 
-#: extension.js:243
+#: extension.js:123
+msgid "Config file is not set."
+msgstr "未设置配置文件"
+
+#: extension.js:198
 msgid "Proxy: "
 msgstr "代理："
 
-#: extension.js:258
+#: extension.js:204
 msgid "Airport: "
 msgstr "提供商："
 
-#: extension.js:269
+#: extension.js:216
 msgid "Sync Subscription"
 msgstr "更新订阅"
 
@@ -86,8 +94,8 @@ msgid "Server"
 msgstr "远端"
 
 #: prefs.js:61
-msgid "Link"
-msgstr "链接"
+msgid "Subs link"
+msgstr "订阅链接"
 
 #: prefs.js:64
 msgid "Local"

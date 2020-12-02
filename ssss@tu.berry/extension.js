@@ -18,18 +18,18 @@ const PAPER_PLANE_ICON = Me.dir.get_child('icons').get_child('paper-plane-symbol
 
 const Shadowsocks = GObject.registerClass({
     Properties: {
-        'restart':    GObject.param_spec_string('restart', '', '', '', GObject.ParamFlags.READWRITE),
-        'filename':   GObject.param_spec_string('filename', '', '', '', GObject.ParamFlags.READWRITE),
-        'subslink':   GObject.param_spec_string('subslink', '', '', '', GObject.ParamFlags.READWRITE),
-        'additions':  GObject.param_spec_string('additions', '', '', '', GObject.ParamFlags.READWRITE),
-        'localaddr':  GObject.param_spec_string('localaddr', '', '', '', GObject.ParamFlags.READWRITE),
-        'subscache':  GObject.param_spec_string('subscache', '', '', '', GObject.ParamFlags.READWRITE),
-        'proxymode':  GObject.param_spec_string('proxymode', '', '', '', GObject.ParamFlags.READWRITE),
-        'servername': GObject.param_spec_string('servername', '', '', '', GObject.ParamFlags.READWRITE),
-        'autosubs':   GObject.param_spec_boolean('autosubs', '', '', false, GObject.ParamFlags.WRITABLE),
-        'litemode':   GObject.param_spec_boolean('litemode', '', '', false, GObject.ParamFlags.READWRITE),
-        'localtime':  GObject.param_spec_uint('localtime', '', '', 0, 1000, 300, GObject.ParamFlags.READWRITE),
-        'localport':  GObject.param_spec_uint('localport', '', '', 0, 65535, 1080, GObject.ParamFlags.READWRITE),
+        'restart':    GObject.param_spec_string('restart', 'restart', 'restart', '', GObject.ParamFlags.READWRITE),
+        'filename':   GObject.param_spec_string('filename', 'filename', 'file name', '', GObject.ParamFlags.READWRITE),
+        'subslink':   GObject.param_spec_string('subslink', 'subslink', 'subs link', '', GObject.ParamFlags.READWRITE),
+        'additions':  GObject.param_spec_string('additions', 'additions', 'additions', '', GObject.ParamFlags.READWRITE),
+        'localaddr':  GObject.param_spec_string('localaddr', 'localaddr', 'local_address', '', GObject.ParamFlags.READWRITE),
+        'subscache':  GObject.param_spec_string('subscache', 'subscache', 'subs cache', '', GObject.ParamFlags.READWRITE),
+        'proxymode':  GObject.param_spec_string('proxymode', 'proxymode', 'proxy mode', '', GObject.ParamFlags.READWRITE),
+        'servername': GObject.param_spec_string('servername', 'servername', 'server name', '', GObject.ParamFlags.READWRITE),
+        'autosubs':   GObject.param_spec_boolean('autosubs', 'autosubs', 'auto subs', false, GObject.ParamFlags.WRITABLE),
+        'litemode':   GObject.param_spec_boolean('litemode', 'litemode', 'lite mode', false, GObject.ParamFlags.READWRITE),
+        'localtime':  GObject.param_spec_uint('localtime', 'localtime', 'timeout', 0, 1000, 300, GObject.ParamFlags.READWRITE),
+        'localport':  GObject.param_spec_uint('localport', 'localport', 'local_port', 0, 65535, 1080, GObject.ParamFlags.READWRITE),
     },
 }, class Shadowsocks extends GObject.Object {
     _init() {

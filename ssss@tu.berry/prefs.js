@@ -58,7 +58,7 @@ class Subscriber extends Gtk.ScrolledWindow {
         this.add(this._box);
         this._server = this._listFrameMaker(_('Server'), 0);
         this._server._add(this._field_auto_subs);
-        this._server._att(this._labelMaker(_('Link'), true), this._field_subs_link);
+        this._server._att(this._labelMaker(_('Subs link'), true), this._field_subs_link);
         this._server._add(this._field_more_info);
 
         this._local = this._listFrameMaker(_('Local'), 20);
