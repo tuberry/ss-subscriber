@@ -1,6 +1,7 @@
 // vim:fdm=syntax
 // by tuberry
 //
+
 const Main = imports.ui.main;
 const Util = imports.misc.util;
 const ByteArray = imports.byteArray;
@@ -35,10 +36,15 @@ const Shadowsocks = GObject.registerClass({
     _init() {
         super._init();
         this.MODES = { auto: _('Automatic'), manual: _('Manual'), none: _('Disable') };
+        this._bindSettings();
+        this._addIndicator();
+        this.proxymodeId = proxyGsettings.connect('changed::' + Fields.PROXYMODE, this._onModeChanged.bind(this));
+        if(this.autosubs) this._fetchSubs().then(scc => { this.subscache = scc; });
     }
 
     _bindSettings() {
         gsettings.bind(Fields.ADDITIONAL, this, 'additions',  Gio.SettingsBindFlags.GET);
+        gsettings.bind(Fields.AUTOSUBS,   this, 'autosubs',   Gio.SettingsBindFlags.GET);
         gsettings.bind(Fields.FILENAME,   this, 'filename',   Gio.SettingsBindFlags.GET);
         gsettings.bind(Fields.LOCALADDR,  this, 'localaddr',  Gio.SettingsBindFlags.GET);
         gsettings.bind(Fields.LOCALPORT,  this, 'localport',  Gio.SettingsBindFlags.GET);
@@ -49,11 +55,6 @@ const Shadowsocks = GObject.registerClass({
         gsettings.bind(Fields.SERVERNAME, this, 'servername', Gio.SettingsBindFlags.DEFAULT);
         gsettings.bind(Fields.SUBSCACHE,  this, 'subscache',  Gio.SettingsBindFlags.DEFAULT);
         proxyGsettings.bind(Fields.PROXYMODE, this, 'proxymode', Gio.SettingsBindFlags.DEFAULT);
-        gsettings.bind(Fields.AUTOSUBS,   this, 'autosubs',   Gio.SettingsBindFlags.GET);
-    }
-
-    set autosubs(autosubs) {
-        if(autosubs) this._fetchSubs().then(scc => { this.subscache = scc; });
     }
 
     get _subscache() {
@@ -234,21 +235,30 @@ const Shadowsocks = GObject.registerClass({
         this._updateMenu();
     }
 
-    enable() {
-        this._bindSettings();
-        this._addIndicator();
-        this.proxymodeId = proxyGsettings.connect('changed::' + Fields.PROXYMODE, this._onModeChanged.bind(this));
-    }
-
-    disable() {
+    destroy() {
         if(this.proxymodeId)
             proxyGsettings.disconnect(this.proxymodeId), this.proxymodeId = 0;
         this._button.destroy();
-        this._button = null;
+        delete this._button;
+        this.run_dispose();
     }
 });
 
+const Extension = class Extension {
+    constructor() {
+        ExtensionUtils.initTranslations();
+    }
+
+    enable() {
+        this._ext = new Shadowsocks();
+    }
+
+    disable() {
+        this._ext.destroy();
+        delete this._ext;
+    }
+}
+
 function init() {
-    ExtensionUtils.initTranslations();
-    return new Shadowsocks();
+    return new Extension();
 }
