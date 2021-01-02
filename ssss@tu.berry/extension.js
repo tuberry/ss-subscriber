@@ -27,7 +27,7 @@ const Shadowsocks = GObject.registerClass({
         'subscache':  GObject.param_spec_string('subscache', 'subscache', 'subs cache', '', GObject.ParamFlags.READWRITE),
         'proxymode':  GObject.param_spec_string('proxymode', 'proxymode', 'proxy mode', '', GObject.ParamFlags.READWRITE),
         'servername': GObject.param_spec_string('servername', 'servername', 'server name', '', GObject.ParamFlags.READWRITE),
-        'autosubs':   GObject.param_spec_boolean('autosubs', 'autosubs', 'auto subs', false, GObject.ParamFlags.WRITABLE),
+        'autosubs':   GObject.param_spec_boolean('autosubs', 'autosubs', 'auto subs', false, GObject.ParamFlags.READWRITE),
         'litemode':   GObject.param_spec_boolean('litemode', 'litemode', 'lite mode', false, GObject.ParamFlags.READWRITE),
         'localtime':  GObject.param_spec_uint('localtime', 'localtime', 'timeout', 0, 1000, 300, GObject.ParamFlags.READWRITE),
         'localport':  GObject.param_spec_uint('localport', 'localport', 'local_port', 0, 65535, 1080, GObject.ParamFlags.READWRITE),
@@ -143,7 +143,7 @@ const Shadowsocks = GObject.registerClass({
 
     _restartService() {
         if(gsettings.get_boolean('gen-all')) {
-            this._genConfig().then(() => { Util.spawnCommandLine(this.restart) });
+            this._genConfig().then(() => { Util.spawnCommandLine(this.restart); });
         } else {
             let conf = this._subscache.servers.find(x => x.remarks == this.servername);
             if(conf) this._genConfig(conf).then(() => { Util.spawnCommandLine(this.restart); });
@@ -208,7 +208,7 @@ const Shadowsocks = GObject.registerClass({
                     if(x.remarks === this.servername) {
                         item.setOrnament(PopupMenu.Ornament.DOT);
                     } else {
-                       item.connect("activate", () => { item._getTopMenu().close(); this._genConfig(x).then(() => { Util.spawnCommandLine(this.restart) }); });
+                       item.connect("activate", () => { item._getTopMenu().close(); this._genConfig(x).then(() => { Util.spawnCommandLine(this.restart); }); });
                     }
                     servers.menu.addMenuItem(item);
                 });
@@ -240,7 +240,6 @@ const Shadowsocks = GObject.registerClass({
             proxyGsettings.disconnect(this.proxymodeId), this.proxymodeId = 0;
         this._button.destroy();
         delete this._button;
-        this.run_dispose();
     }
 });
 
