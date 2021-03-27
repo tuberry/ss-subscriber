@@ -19,18 +19,18 @@ const PAPER_PLANE_ICON = Me.dir.get_child('icons').get_child('paper-plane-symbol
 
 const Shadowsocks = GObject.registerClass({
     Properties: {
-        'restart':    GObject.param_spec_string('restart', 'restart', 'restart', '', GObject.ParamFlags.READWRITE),
-        'filename':   GObject.param_spec_string('filename', 'filename', 'file name', '', GObject.ParamFlags.READWRITE),
-        'subslink':   GObject.param_spec_string('subslink', 'subslink', 'subs link', '', GObject.ParamFlags.READWRITE),
-        'additions':  GObject.param_spec_string('additions', 'additions', 'additions', '', GObject.ParamFlags.READWRITE),
-        'localaddr':  GObject.param_spec_string('localaddr', 'localaddr', 'local_address', '', GObject.ParamFlags.READWRITE),
-        'subscache':  GObject.param_spec_string('subscache', 'subscache', 'subs cache', '', GObject.ParamFlags.READWRITE),
-        'proxymode':  GObject.param_spec_string('proxymode', 'proxymode', 'proxy mode', '', GObject.ParamFlags.READWRITE),
-        'servername': GObject.param_spec_string('servername', 'servername', 'server name', '', GObject.ParamFlags.READWRITE),
-        'autosubs':   GObject.param_spec_boolean('autosubs', 'autosubs', 'auto subs', false, GObject.ParamFlags.READWRITE),
-        'litemode':   GObject.param_spec_boolean('litemode', 'litemode', 'lite mode', false, GObject.ParamFlags.READWRITE),
-        'localtime':  GObject.param_spec_uint('localtime', 'localtime', 'timeout', 0, 1000, 300, GObject.ParamFlags.READWRITE),
-        'localport':  GObject.param_spec_uint('localport', 'localport', 'local_port', 0, 65535, 1080, GObject.ParamFlags.READWRITE),
+        'restart':    GObject.ParamSpec.string('restart', 'restart', 'restart', GObject.ParamFlags.READWRITE, ''),
+        'filename':   GObject.ParamSpec.string('filename', 'filename', 'file name', GObject.ParamFlags.READWRITE, ''),
+        'subslink':   GObject.ParamSpec.string('subslink', 'subslink', 'subs link', GObject.ParamFlags.READWRITE, ''),
+        'additions':  GObject.ParamSpec.string('additions', 'additions', 'additions', GObject.ParamFlags.READWRITE, ''),
+        'localaddr':  GObject.ParamSpec.string('localaddr', 'localaddr', 'local_address', GObject.ParamFlags.READWRITE, ''),
+        'subscache':  GObject.ParamSpec.string('subscache', 'subscache', 'subs cache', GObject.ParamFlags.READWRITE, ''),
+        'proxymode':  GObject.ParamSpec.string('proxymode', 'proxymode', 'proxy mode', GObject.ParamFlags.READWRITE, ''),
+        'servername': GObject.ParamSpec.string('servername', 'servername', 'server name', GObject.ParamFlags.READWRITE, ''),
+        'autosubs':   GObject.ParamSpec.boolean('autosubs', 'autosubs', 'auto subs', GObject.ParamFlags.READWRITE, false),
+        'litemode':   GObject.ParamSpec.boolean('litemode', 'litemode', 'lite mode', GObject.ParamFlags.READWRITE, false),
+        'localtime':  GObject.ParamSpec.uint('localtime', 'localtime', 'timeout', GObject.ParamFlags.READWRITE, 0, 1000, 300),
+        'localport':  GObject.ParamSpec.uint('localport', 'localport', 'local_port', GObject.ParamFlags.READWRITE, 0, 65535, 1080),
     },
 }, class Shadowsocks extends GObject.Object {
     _init() {
@@ -75,11 +75,11 @@ const Shadowsocks = GObject.registerClass({
                 let uri = new Soup.URI(this.subslink);
                 let request = Soup.Message.new_from_uri('GET', uri);
                 session.queue_message(request, (session, message) => {
-                    if(message.status_code == 200) {
+                    if(message.status_code == Soup.KnownStatusCode.OK) {
                         let data = message.response_body.data.trim();
                         data ? resolve(data) : reject(_('Error: Subscription content is empty.'));
                     } else {
-                        reject('Error: HTTP status code %d'.format(message.status_code));
+                        reject('Error: SOUP status code %d'.format(message.status_code));
                     }
                 });
             } catch(e) {
@@ -108,14 +108,14 @@ const Shadowsocks = GObject.registerClass({
     _genConfig(config) {
         return new Promise((resolve, reject) => {
             try {
-                let subs = this._subscache;
-                let conf = { server: [], server_port: subs.port, password: subs.password, method: subs.encryption, };
+                let conf = {};
                 if(config) {
-                    Object.assign(conf, config);
+                    Object.assign(conf, JSON.parse(JSON.stringify(config).replace(/encryption/g, 'method').replace(/port/g, 'server_port')));
                     this.servername = config.remarks;
                     this._updateMenu();
                 } else {
-                    conf.server = subs.servers.map(x => x.server).filter(x => x != '127.0.0.1');
+                    let subs = this._subscache;
+                    conf = { server: subs.servers.map(x => x.server).filter(x => x != '127.0.0.1'), server_port: subs.port, password: subs.password, method: subs.encryption, };
                 }
                 let local = { local_port: this.localport, timeout: this.localtime, };
                 if(this.localaddr) local.local_address = this.localaddr;
@@ -156,14 +156,13 @@ const Shadowsocks = GObject.registerClass({
     }
 
     _settingItem() {
-        let item = new PopupMenu.PopupBaseMenuItem({ style_class: 'ss-subscriber-item', hover: false });
+        let item = new PopupMenu.PopupBaseMenuItem({ style_class: 'ss-subscriber-item popup-menu-item', hover: false });
         let hbox = new St.BoxLayout({ x_align: St.Align.START, x_expand: true });
         let addButtonItem = (icon, func) => {
             let btn = new St.Button({
-                hover: true,
                 x_expand: true,
                 style_class: 'ss-subscriber-button',
-                child: new St.Icon({ icon_name: icon, style_class: 'ss-subscriber-icon', }),
+                child: new St.Icon({ icon_name: icon, style_class: 'ss-subscriber-icon popup-menu-icon', }),
             });
             btn.connect('clicked', func);
             hbox.add_child(btn);
@@ -184,14 +183,14 @@ const Shadowsocks = GObject.registerClass({
                 this._tmpMode = x;
                 item.setOrnament(PopupMenu.Ornament.DOT);
             } else {
-                item.connect("activate", () => { item._getTopMenu().close(); this.proxymode = x; });
+                item.connect('activate', () => { item._getTopMenu().close(); this.proxymode = x; });
             }
             items.push(item);
         }
         return items;
     }
 
-    _updateMenu() {
+    _updateMenu(callback) {
         this._button.menu.removeAll();
         if(this.litemode) {
             this._proxyItems().forEach(item => { this._button.menu.addMenuItem(item); });
@@ -204,19 +203,32 @@ const Shadowsocks = GObject.registerClass({
                 let subs = this._subscache;
                 let servers = new PopupMenu.PopupSubMenuMenuItem(_('Airport: ') + "%d/%d".format(subs.traffic_used, subs.traffic_total));
                 subs.servers.forEach(x => {
-                    let item = new PopupMenu.PopupMenuItem(x.remarks, { style_class: 'ss-subscriber-item' });
+                    let item = new PopupMenu.PopupMenuItem(x.remarks, { style_class: 'ss-subscriber-item popup-menu-item' });
+                    if(typeof callback == 'function') callback(x.server, item);
                     if(x.remarks === this.servername) {
                         item.setOrnament(PopupMenu.Ornament.DOT);
                     } else {
-                       item.connect("activate", () => { item._getTopMenu().close(); this._genConfig(x).then(() => { Util.spawnCommandLine(this.restart); }); });
+                        item.connect('activate', () => { item._getTopMenu().close(); this._genConfig(x).then(() => { Util.spawnCommandLine(this.restart); }); });
                     }
                     servers.menu.addMenuItem(item);
                 });
                 this._button.menu.addMenuItem(servers);
 
                 let sync = new PopupMenu.PopupMenuItem(_("Sync Subscription"));
-                sync.connect("activate", () => { sync._getTopMenu().close(); this._syncSubscribe(); });
+                sync.connect('activate', this._syncSubscribe.bind(this));
                 this._button.menu.addMenuItem(sync);
+
+                // let ping = new PopupMenu.PopupMenuItem(_("Test latency"));
+                // ping.connect('activate', () => {
+                //     this._execute("sh -c '! command -v fping'").then(err => {
+                //         this._updateMenu((server, item) => {
+                //             this._execute('fping ' + server).then(err => { item.add_style_class_name('ss-subscriber-item-timeout'); });
+                //         });
+                //     }).catch(scc => {
+                //         Main.notify(Me.metadata.name, _('Cannot find fping to test latency.'))
+                //     });
+                // }); // need time, manually trigger
+                // this._button.menu.addMenuItem(ping);
             }
         }
 
@@ -224,11 +236,24 @@ const Shadowsocks = GObject.registerClass({
         this._button.menu.addMenuItem(this._settingItem());
     }
 
+    _execute(cmd) {
+        return new Promise((resolve, reject) => {
+            try {
+                let [, command] = GLib.shell_parse_argv(cmd);
+                let proc = new Gio.Subprocess({ argv: command, flags: Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE, });
+                proc.init(null);
+                proc.communicate_utf8_async(null, null, (proc, res) => { proc.get_exit_status() ? resolve() : reject(); });
+            } catch(e) {
+                reject();
+            }
+        });
+    }
+
     _addIndicator() {
         this._button = new PanelMenu.Button(null);
         this._button.add_actor(new St.Icon({
+            style_class: 'ss-subscriber system-status-icon',
             gicon: new Gio.FileIcon({ file: Gio.File.new_for_path(PAPER_PLANE_ICON) }),
-            style_class: 'ss-subscriber system-status-icon'
         }));
         this._button.add_style_class_name(this.proxymode);
         Main.panel.addToStatusArea(Me.metadata.uuid, this._button);

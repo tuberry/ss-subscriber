@@ -1,6 +1,11 @@
 /* Add your custom extension styling here */
+
 .ss-subscriber-item {
-    /* max-width: 200px; */
+    max-width: 30em;
+}
+
+.ss-subscriber-item-timeout {
+    color: red;
 }
 
 .ss-subscriber-button:hover {
@@ -8,7 +13,6 @@
 }
 
 .ss-subscriber-icon {
-    icon-size: 16px;
 }
 
 .none .ss-subscriber {

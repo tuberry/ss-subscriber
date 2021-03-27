@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Ss Subscriber\n"
+"Project-Id-Version: Ss Subscriber 18\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-12-02 13:23+0800\n"
+"POT-Creation-Date: 2021-03-27 14:32+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,35 +17,35 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: extension.js:37
+#: extension.js:38
 msgid "Automatic"
 msgstr ""
 
-#: extension.js:37
+#: extension.js:38
 msgid "Manual"
 msgstr ""
 
-#: extension.js:37
+#: extension.js:38
 msgid "Disable"
 msgstr ""
 
-#: extension.js:71
+#: extension.js:72
 msgid "Subscription link is missing."
 msgstr ""
 
-#: extension.js:79
+#: extension.js:80
 msgid "Error: Subscription content is empty."
 msgstr ""
 
-#: extension.js:97
+#: extension.js:98
 msgid "Start synchronizing."
 msgstr ""
 
-#: extension.js:101
+#: extension.js:102
 msgid "Synchronized successfully."
 msgstr ""
 
-#: extension.js:123
+#: extension.js:124
 msgid "Config file is not set."
 msgstr ""
 
@@ -57,71 +57,59 @@ msgstr ""
 msgid "Airport: "
 msgstr ""
 
-#: extension.js:216
+#: extension.js:217
 msgid "Sync Subscription"
 msgstr ""
 
-#: prefs.js:44
+#: prefs.js:50
 msgid "Can be blank"
 msgstr ""
 
-#: prefs.js:45
-msgid "Choose the config file"
+#: prefs.js:51
+msgid "Auto update subscription (not config file)"
 msgstr ""
 
-#: prefs.js:46
+#: prefs.js:52
 msgid "JSON format, can be blank"
 msgstr ""
 
-#: prefs.js:47
+#: prefs.js:53
 msgid "Subscription link (SSD only)"
 msgstr ""
 
-#: prefs.js:48
+#: prefs.js:55
 msgid "Command to restart"
 msgstr ""
 
-#: prefs.js:49
+#: prefs.js:56
 #, javascript-format
 msgid "See <span><a href=\"%s\">%s</a></span> for pre-steps to use it."
 msgstr ""
 
-#: prefs.js:50
-msgid "Auto update subscription (not config file)"
-msgstr ""
-
-#: prefs.js:59
-msgid "Server"
-msgstr ""
-
-#: prefs.js:61
+#: prefs.js:60
 msgid "Subs link"
 msgstr ""
 
-#: prefs.js:64
-msgid "Local"
-msgstr ""
-
-#: prefs.js:65
+#: prefs.js:61
 msgid "Conf file"
 msgstr ""
 
-#: prefs.js:66
+#: prefs.js:62
 msgid "Timeout"
 msgstr ""
 
-#: prefs.js:67
+#: prefs.js:63
 msgid "Address and port"
 msgstr ""
 
-#: prefs.js:68
+#: prefs.js:64
 msgid "Addtional"
 msgstr ""
 
-#: prefs.js:70
+#: prefs.js:65
 msgid "Apply"
 msgstr ""
 
-#: prefs.js:71
+#: prefs.js:66
 msgid "Apply new config then restart service"
 msgstr ""

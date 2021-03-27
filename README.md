@@ -1,32 +1,38 @@
 # ss-subscriber
-Simple shadowsocks subscriber (SSD only), yet another proxy switcher for gnome shell.
 
+Simple shadowsocks subscriber (SSD only), yet another proxy switcher for gnome shell.
 > data **提问的智慧** = 别问 | 问就是**提问的智慧**<br>
 [![license]](/LICENSE)
-
 <br>
 
+![image](https://user-images.githubusercontent.com/17917040/81277066-76b7dd00-9086-11ea-953e-af4236c17ee7.png)
+
 ## Installation
+
 [<img src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=true" alt="Get it on GNOME Extensions" height="100" align="middle">][EGO]
 
 Or manually:
-```shell
+
+```bash
 git clone https://github.com/tuberry/ss-subscriber.git
 cd ss-subscriber && make install
 ```
 ## Usage
 
-![image](https://user-images.githubusercontent.com/17917040/81277066-76b7dd00-9086-11ea-953e-af4236c17ee7.png)
-
 ### dependencies
+
 1. `shadowsocks-libev`: provides `ss-local`.
+
 ### config file
-```
+
+```bash
 mkdir -p ~/.config/shadowsocks
 touch ~/.config/shadowsocks/ssss.json
 ```
+
 ### service unit
-```
+
+```bash
 mkdir -p ~/.config/systemd/user
 echo '[Unit]
 Description=Shadowsocks-Libev Client User Service
@@ -45,9 +51,11 @@ systemctl --user enable shadowsocks-libev@ssss.service --now
 ```
 
 ### fill blanks
-![image](https://user-images.githubusercontent.com/17917040/99905245-aa98de00-2d0a-11eb-9ce4-6233293ee011.png)
+
+![ssprefs](https://user-images.githubusercontent.com/17917040/112720157-9c1c3680-8f37-11eb-9c75-8d5115acf93c.png)
 
 ## Acknowledgements
+
 * [proxy-switcher](https://github.com/tomflannaghan/proxy-switcher): network setting button
 * [SSD-windows](https://github.com/TheCGDF/SSD-Windows/wiki/HTTP-Subscription-Agreement): SSD http subscription agreement
 * [GS-shadowsocks](https://github.com/ylxdzsw/gnome-shell-extension-shadowsocks): panel menu arrangement
