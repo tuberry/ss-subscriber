@@ -1,6 +1,6 @@
 // vim:fdm=syntax
-// by tuberry
-//
+// by: tuberry@github
+'use strict';
 
 const Main = imports.ui.main;
 const Util = imports.misc.util;
@@ -13,7 +13,7 @@ const proxyGsettings = new Gio.Settings({ schema_id: 'org.gnome.system.proxy' })
 const ExtensionUtils = imports.misc.extensionUtils;
 const gsettings = ExtensionUtils.getSettings();
 const Me = ExtensionUtils.getCurrentExtension();
-const Fields = Me.imports.prefs.Fields;
+const Fields = Me.imports.fields.Fields;
 const _ = imports.gettext.domain(Me.metadata['gettext-domain']).gettext;
 const PAPER_PLANE_ICON = Me.dir.get_child('icons').get_child('paper-plane-symbolic.svg').get_path();
 

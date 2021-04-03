@@ -1,28 +1,15 @@
 // vim:fdm=syntax
-// by tuberry
-//
+// by: tuberry@github
+'use strict';
+
 const { Gio, Gtk, GLib, GObject } = imports.gi;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const _ = imports.gettext.domain(Me.metadata['gettext-domain']).gettext;
 const gsettings = ExtensionUtils.getSettings();
+const Fields = Me.imports.fields.Fields;
 const UI = Me.imports.ui;
-
-var Fields = {
-    PROXYMODE:  'mode',
-    LITEMODE:   'lite-mode',
-    LOCALADDR:  'local-addr',
-    LOCALPORT:  'local-port',
-    FILENAME:   'config-file',
-    LOCALTIME:  'local-timeout',
-    AUTOSUBS:   'auto-subscribe',
-    SERVERNAME: 'server-remarks',
-    SUBSLINK:   'subscribe-link',
-    RESTART:    'restart-command',
-    ADDITIONAL: 'addtional-config',
-    SUBSCACHE:  'subscribe-caches',
-};
 
 function buildPrefsWidget() {
     return new SSSubscriberPrefs();
@@ -35,26 +22,28 @@ function init() {
 const SSSubscriberPrefs = GObject.registerClass(
 class SSSubscriberPrefs extends Gtk.ScrolledWindow {
     _init() {
-        super._init({
-            vscrollbar_policy: Gtk.PolicyType.NEVER,
-        });
+        super._init({ vscrollbar_policy: Gtk.PolicyType.NEVER, });
 
-        this._bulidUI();
+        this._buildWidgets();
         this._bindValues();
-        this.show_all();
+        this._buildUI();
     }
 
-    _bulidUI() {
+    _buildWidgets() {
         this._field_local_port = new UI.Spin(0, 65535, 1);
         this._field_local_time = new UI.Spin(0, 1000, 50);
+        this._field_filename   = new UI.FileButton({ filter: 'application/json' });
         this._field_local_addr = new UI.Entry('local_address', _('Can be blank'), true);
         this._field_auto_subs  = new UI.Check(_('Auto update subscription (not config file)'));
         this._field_additional = new UI.Entry('{ "fast_open": true }', _('JSON format, can be blank'));
         this._field_subs_link  = this._linkMaker('https://www.example.com', _('Subscription link (SSD only)'));
-        this._field_filename   = new UI.FileButton(gsettings.get_string(Fields.FILENAME), { filter: 'application/json' });
         this._field_restart    = new UI.Entry('systemctl --user restart shadowsocks@ssss.service', _('Command to restart'));
         this._field_more_info  = this._labelMaker(_('See <span><a href="%s">%s</a></span> for pre-steps to use it.').format(Me.metadata.url, Me.metadata.url));
+    }
 
+    _buildUI() {
+        let btn = new Gtk.Button({ label: _('Apply'), tooltip_text: _('Apply new config then restart service') });
+        btn.connect('clicked', this._updateConfig.bind(this));
         let grid = new UI.ListGrid();
         grid._add(this._field_auto_subs);
         grid._att(new UI.Label(_('Subs link'), true), this._field_subs_link);
@@ -62,24 +51,25 @@ class SSSubscriberPrefs extends Gtk.ScrolledWindow {
         grid._add(new UI.Label(_('Timeout')), this._field_local_time);
         grid._add(new UI.Label(_('Address and port')), this._field_local_addr, this._field_local_port);
         grid._att(new UI.Label(_('Addtional'), true), this._field_additional);
-        let btn = new Gtk.Button({ label: _('Apply') });
-        btn.set_tooltip_text(_('Apply new config then restart service'));
-        btn.connect('clicked', this._updateConfig.bind(this));
         grid._att(btn, this._field_restart);
         grid._add(this._field_more_info);
-        this.add(new UI.Frame(grid));
+        this.set_child(new UI.Frame(grid));
     }
 
     _bindValues() {
-        gsettings.bind(Fields.AUTOSUBS,   this._field_auto_subs, 'active',  Gio.SettingsBindFlags.DEFAULT);
+        gsettings.bind(Fields.AUTOSUBS,   this._field_auto_subs,  'active', Gio.SettingsBindFlags.DEFAULT);
         gsettings.bind(Fields.LOCALPORT,  this._field_local_port, 'value',  Gio.SettingsBindFlags.DEFAULT);
         gsettings.bind(Fields.LOCALTIME,  this._field_local_time, 'value',  Gio.SettingsBindFlags.DEFAULT);
+        gsettings.bind(Fields.FILENAME,   this._field_filename,   'file',   Gio.SettingsBindFlags.DEFAULT);
         gsettings.bind(Fields.LOCALADDR,  this._field_local_addr, 'text',   Gio.SettingsBindFlags.DEFAULT);
         gsettings.bind(Fields.ADDITIONAL, this._field_additional, 'text',   Gio.SettingsBindFlags.DEFAULT);
         gsettings.bind(Fields.SUBSLINK,   this._field_subs_link,  'text',   Gio.SettingsBindFlags.DEFAULT);
         gsettings.bind(Fields.RESTART,    this._field_restart,    'text',   Gio.SettingsBindFlags.DEFAULT);
 
-        this._field_subs_link.set_edit(!gsettings.get_string(Fields.SUBSLINK));
+        this._field_local_addr._set_edit();
+        this._field_subs_link._set_edit();
+        this._field_additional._set_edit();
+        this._field_restart._set_edit();
     }
 
     _updateConfig() {
