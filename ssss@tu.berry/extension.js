@@ -142,7 +142,7 @@ const Shadowsocks = GObject.registerClass({
     }
 
     _restartService() {
-        if(gsettings.get_boolean('gen-all')) {
+        if(gsettings.get_boolean('gen-all')) { // NOTE: need redesign
             this._genConfig().then(() => { Util.spawnCommandLine(this.restart); });
         } else {
             let conf = this._subscache.servers.find(x => x.remarks == this.servername);
@@ -250,7 +250,7 @@ const Shadowsocks = GObject.registerClass({
     }
 
     _addIndicator() {
-        this._button = new PanelMenu.Button(null);
+        this._button = new PanelMenu.Button(null, Me.metadata.uuid);
         this._button.add_actor(new St.Icon({
             style_class: 'ss-subscriber system-status-icon',
             gicon: new Gio.FileIcon({ file: Gio.File.new_for_path(PAPER_PLANE_ICON) }),

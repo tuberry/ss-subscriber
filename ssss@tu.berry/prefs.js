@@ -45,6 +45,7 @@ class SSSubscriberPrefs extends Gtk.ScrolledWindow {
         let btn = new Gtk.Button({ label: _('Apply'), tooltip_text: _('Apply new config then restart service') });
         btn.connect('clicked', this._updateConfig.bind(this));
         let grid = new UI.ListGrid();
+        grid._add(this._field_more_info);
         grid._add(this._field_auto_subs);
         grid._att(new UI.Label(_('Subs link'), true), this._field_subs_link);
         grid._add(new UI.Label(_('Conf file')), this._field_filename);
@@ -52,7 +53,6 @@ class SSSubscriberPrefs extends Gtk.ScrolledWindow {
         grid._add(new UI.Label(_('Address and port')), this._field_local_addr, this._field_local_port);
         grid._att(new UI.Label(_('Addtional'), true), this._field_additional);
         grid._att(btn, this._field_restart);
-        grid._add(this._field_more_info);
         this.set_child(new UI.Frame(grid));
     }
 
