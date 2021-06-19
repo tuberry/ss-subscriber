@@ -16,6 +16,7 @@ Or manually:
 ```bash
 git clone https://github.com/tuberry/ss-subscriber.git
 cd ss-subscriber && make install
+# make mergepo # for translation
 ```
 ## Usage
 

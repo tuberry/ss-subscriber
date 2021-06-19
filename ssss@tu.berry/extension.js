@@ -142,7 +142,7 @@ const Shadowsocks = GObject.registerClass({
     }
 
     _restartService() {
-        if(gsettings.get_boolean('gen-all')) {
+        if(gsettings.get_boolean('gen-all')) { // NOTE: need redesign
             this._genConfig().then(() => { Util.spawnCommandLine(this.restart); });
         } else {
             let conf = this._subscache.servers.find(x => x.remarks == this.servername);
