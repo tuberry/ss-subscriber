@@ -217,36 +217,11 @@ const Shadowsocks = GObject.registerClass({
                 let sync = new PopupMenu.PopupMenuItem(_("Sync Subscription"));
                 sync.connect('activate', this._syncSubscribe.bind(this));
                 this._button.menu.addMenuItem(sync);
-
-                // let ping = new PopupMenu.PopupMenuItem(_("Test latency"));
-                // ping.connect('activate', () => {
-                //     this._execute("sh -c '! command -v fping'").then(err => {
-                //         this._updateMenu((server, item) => {
-                //             this._execute('fping ' + server).then(err => { item.add_style_class_name('ss-subscriber-item-timeout'); });
-                //         });
-                //     }).catch(scc => {
-                //         Main.notify(Me.metadata.name, _('Cannot find fping to test latency.'))
-                //     });
-                // }); // need time, manually trigger
-                // this._button.menu.addMenuItem(ping);
             }
         }
 
         this._button.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem(''));
         this._button.menu.addMenuItem(this._settingItem());
-    }
-
-    _execute(cmd) {
-        return new Promise((resolve, reject) => {
-            try {
-                let [, command] = GLib.shell_parse_argv(cmd);
-                let proc = new Gio.Subprocess({ argv: command, flags: Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE, });
-                proc.init(null);
-                proc.communicate_utf8_async(null, null, (proc, res) => { proc.get_exit_status() ? resolve() : reject(); });
-            } catch(e) {
-                reject();
-            }
-        });
     }
 
     _addIndicator() {

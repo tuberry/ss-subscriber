@@ -22,7 +22,7 @@ cd ss-subscriber && make install
 
 ### dependencies
 
-1. `shadowsocks-libev`: provides `ss-local`.
+* `shadowsocks-libev`: provides `ss-local`.
 
 ### config file
 

@@ -81,7 +81,7 @@ class SSSubscriberPrefs extends Gtk.ScrolledWindow {
             let file = Gio.File.new_for_path(gsettings.get_string(Fields.FILENAME));
             file.replace_contents(JSON.stringify(conf, null, 2), null, false, Gio.FileCreateFlags.PRIVATE, null);
             let proc = new Gio.Subprocess({
-                argv: ['/bin/bash', '-c', gsettings.get_string(Fields.RESTART)],
+                argv: GLib.shell_parse_argv(gsettings.get_string(Fields.RESTART)),
                 flags: Gio.SubprocessFlags.STDOUT_SILENCE | Gio.SubprocessFlags.STDERR_SILENCE
             });
             proc.init(null);
@@ -108,8 +108,8 @@ class SSSubscriberPrefs extends Gtk.ScrolledWindow {
     _labelMaker(x, y) {
         return new Gtk.Label({
             label: x,
+            hexpand: !y,
             use_markup: true,
-            hexpand: y ? false : true,
             halign: Gtk.Align.START,
         });
     }
