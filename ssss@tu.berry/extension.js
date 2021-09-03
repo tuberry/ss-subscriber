@@ -1,36 +1,35 @@
 // vim:fdm=syntax
-// by: tuberry@github
+// by tuberry
 'use strict';
 
 const Main = imports.ui.main;
 const Util = imports.misc.util;
-const ByteArray = imports.byteArray;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const { GLib, Shell, GObject, Soup, Gio, St } = imports.gi;
 
-const proxyGsettings = new Gio.Settings({ schema_id: 'org.gnome.system.proxy' });
 const ExtensionUtils = imports.misc.extensionUtils;
+const _ = ExtensionUtils.gettext;
 const gsettings = ExtensionUtils.getSettings();
 const Me = ExtensionUtils.getCurrentExtension();
 const Fields = Me.imports.fields.Fields;
-const _ = imports.gettext.domain(Me.metadata['gettext-domain']).gettext;
+const proxyGsettings = new Gio.Settings({ schema_id: 'org.gnome.system.proxy' });
 const PAPER_PLANE_ICON = Me.dir.get_child('icons').get_child('paper-plane-symbolic.svg').get_path();
 
 const Shadowsocks = GObject.registerClass({
     Properties: {
-        'restart':    GObject.ParamSpec.string('restart', 'restart', 'restart', GObject.ParamFlags.READWRITE, ''),
-        'filename':   GObject.ParamSpec.string('filename', 'filename', 'file name', GObject.ParamFlags.READWRITE, ''),
-        'subslink':   GObject.ParamSpec.string('subslink', 'subslink', 'subs link', GObject.ParamFlags.READWRITE, ''),
-        'additions':  GObject.ParamSpec.string('additions', 'additions', 'additions', GObject.ParamFlags.READWRITE, ''),
-        'localaddr':  GObject.ParamSpec.string('localaddr', 'localaddr', 'local_address', GObject.ParamFlags.READWRITE, ''),
-        'subscache':  GObject.ParamSpec.string('subscache', 'subscache', 'subs cache', GObject.ParamFlags.READWRITE, ''),
-        'proxymode':  GObject.ParamSpec.string('proxymode', 'proxymode', 'proxy mode', GObject.ParamFlags.READWRITE, ''),
-        'servername': GObject.ParamSpec.string('servername', 'servername', 'server name', GObject.ParamFlags.READWRITE, ''),
-        'autosubs':   GObject.ParamSpec.boolean('autosubs', 'autosubs', 'auto subs', GObject.ParamFlags.READWRITE, false),
-        'litemode':   GObject.ParamSpec.boolean('litemode', 'litemode', 'lite mode', GObject.ParamFlags.READWRITE, false),
-        'localtime':  GObject.ParamSpec.uint('localtime', 'localtime', 'timeout', GObject.ParamFlags.READWRITE, 0, 1000, 300),
-        'localport':  GObject.ParamSpec.uint('localport', 'localport', 'local_port', GObject.ParamFlags.READWRITE, 0, 65535, 1080),
+        'restart':     GObject.ParamSpec.string('restart', 'restart', 'restart', GObject.ParamFlags.READWRITE, ''),
+        'filename':    GObject.ParamSpec.string('filename', 'filename', 'filename', GObject.ParamFlags.READWRITE, ''),
+        'subs-link':   GObject.ParamSpec.string('subs-link', 'subs-link', 'subs link', GObject.ParamFlags.READWRITE, ''),
+        'additions':   GObject.ParamSpec.string('additions', 'additions', 'additions', GObject.ParamFlags.READWRITE, ''),
+        'local-addr':  GObject.ParamSpec.string('local-addr', 'local-addr', 'local address', GObject.ParamFlags.READWRITE, ''),
+        'subs-cache':  GObject.ParamSpec.string('subs-cache', 'subs-cache', 'subs cache', GObject.ParamFlags.READWRITE, ''),
+        'proxy-mode':  GObject.ParamSpec.string('proxy-mode', 'proxy-mode', 'proxy mode', GObject.ParamFlags.READWRITE, ''),
+        'server-name': GObject.ParamSpec.string('server-name', 'server-name', 'server name', GObject.ParamFlags.READWRITE, ''),
+        'auto-subs':   GObject.ParamSpec.boolean('auto-subs', 'auto-subs', 'auto subs', GObject.ParamFlags.READWRITE, false),
+        'lite-mode':   GObject.ParamSpec.boolean('lite-mode', 'lite-mode', 'lite mode', GObject.ParamFlags.READWRITE, false),
+        'local-time':  GObject.ParamSpec.uint('local-time', 'local-time', 'timeout', GObject.ParamFlags.READWRITE, 0, 1000, 300),
+        'local-port':  GObject.ParamSpec.uint('local-port', 'local-port', 'local port', GObject.ParamFlags.READWRITE, 0, 65535, 1080),
     },
 }, class Shadowsocks extends GObject.Object {
     _init() {
@@ -38,70 +37,65 @@ const Shadowsocks = GObject.registerClass({
         this.MODES = { auto: _('Automatic'), manual: _('Manual'), none: _('Disable') };
         this._bindSettings();
         this._addIndicator();
-        this.proxymodeId = proxyGsettings.connect('changed::' + Fields.PROXYMODE, this._onModeChanged.bind(this));
-        if(this.autosubs) this._fetchSubs().then(scc => { this.subscache = scc; });
+        this.proxyModeId = proxyGsettings.connect('changed::' + Fields.PROXYMODE, this._onModeChanged.bind(this));
+        if(this.auto_subs) this._fetchSubs().then(scc => { this.subs_cache = scc; })
     }
 
     _bindSettings() {
-        gsettings.bind(Fields.ADDITIONAL, this, 'additions',  Gio.SettingsBindFlags.GET);
-        gsettings.bind(Fields.AUTOSUBS,   this, 'autosubs',   Gio.SettingsBindFlags.GET);
-        gsettings.bind(Fields.FILENAME,   this, 'filename',   Gio.SettingsBindFlags.GET);
-        gsettings.bind(Fields.LOCALADDR,  this, 'localaddr',  Gio.SettingsBindFlags.GET);
-        gsettings.bind(Fields.LOCALPORT,  this, 'localport',  Gio.SettingsBindFlags.GET);
-        gsettings.bind(Fields.LOCALTIME,  this, 'localtime',  Gio.SettingsBindFlags.GET);
-        gsettings.bind(Fields.RESTART,    this, 'restart',    Gio.SettingsBindFlags.GET);
-        gsettings.bind(Fields.SUBSLINK,   this, 'subslink',   Gio.SettingsBindFlags.GET);
-        gsettings.bind(Fields.LITEMODE,   this, 'litemode',   Gio.SettingsBindFlags.DEFAULT);
-        gsettings.bind(Fields.SERVERNAME, this, 'servername', Gio.SettingsBindFlags.DEFAULT);
-        gsettings.bind(Fields.SUBSCACHE,  this, 'subscache',  Gio.SettingsBindFlags.DEFAULT);
-        proxyGsettings.bind(Fields.PROXYMODE, this, 'proxymode', Gio.SettingsBindFlags.DEFAULT);
+        gsettings.bind(Fields.ADDITIONAL, this, 'additions',   Gio.SettingsBindFlags.GET);
+        gsettings.bind(Fields.AUTOSUBS,   this, 'auto-subs',   Gio.SettingsBindFlags.GET);
+        gsettings.bind(Fields.FILENAME,   this, 'filename',    Gio.SettingsBindFlags.GET);
+        gsettings.bind(Fields.LOCALADDR,  this, 'local-addr',  Gio.SettingsBindFlags.GET);
+        gsettings.bind(Fields.LOCALPORT,  this, 'local-port',  Gio.SettingsBindFlags.GET);
+        gsettings.bind(Fields.LOCALTIME,  this, 'local-time',  Gio.SettingsBindFlags.GET);
+        gsettings.bind(Fields.RESTART,    this, 'restart',     Gio.SettingsBindFlags.GET);
+        gsettings.bind(Fields.SUBSLINK,   this, 'subs-link',   Gio.SettingsBindFlags.GET);
+        gsettings.bind(Fields.LITEMODE,   this, 'lite-mode',   Gio.SettingsBindFlags.DEFAULT);
+        gsettings.bind(Fields.SERVERNAME, this, 'server-name', Gio.SettingsBindFlags.DEFAULT);
+        gsettings.bind(Fields.SUBSCACHE,  this, 'subs-cache',  Gio.SettingsBindFlags.DEFAULT);
+        proxyGsettings.bind(Fields.PROXYMODE, this, 'proxy-mode', Gio.SettingsBindFlags.DEFAULT);
     }
 
-    get _subscache() {
+    get _subs_cache() {
         let fix = x => x.replace(/-/g, '+').replace(/_/g, '/');
         let fill = x => x.length % 4 === 0 ? x : x + "=".repeat(4 - x.length % 4);
-        let decode = x => eval("'" + ByteArray.toString(GLib.base64_decode(fill(fix(x)))) + "'");
-        let caches = JSON.parse(decode(this.subscache.slice(6)).replace(/\s/g, ' '));
+        let decode = x => eval("'" + new TextDecoder().decode(GLib.base64_decode(fill(fix(x)))) + "'");
+        let caches = JSON.parse(decode(this.subs_cache.slice(6)).replace(/\s/g, ' '));
 
         return caches;
     }
 
-    _fetchSubs() {
-        return new Promise((resolve, reject) => {
-            try{
-                if(!this.subslink) reject(_('Subscription link is missing.'));
-                let session = new Soup.SessionAsync();
-                Soup.Session.prototype.add_feature.call(session, new Soup.ProxyResolverDefault());
-                let uri = new Soup.URI(this.subslink);
-                let request = Soup.Message.new_from_uri('GET', uri);
-                session.queue_message(request, (session, message) => {
-                    if(message.status_code == Soup.KnownStatusCode.OK) {
-                        let data = message.response_body.data.trim();
-                        data ? resolve(data) : reject(_('Error: Subscription content is empty.'));
-                    } else {
-                        reject('Error: SOUP status code %d'.format(message.status_code));
-                    }
-                });
-            } catch(e) {
-                reject(e.message);
-            }
-        });
+    async _fetchSubs() {
+        if(!this.subs_link) throw new Error(_('Subscription link is missing.'));
+        let result = await this.visit('GET', this.subs_link)
+        if(!result) throw new Error(_('Error: Subscription content is empty.'));
+
+        return result;
+    }
+
+    async visit(method, url) {
+        let message = Soup.Message.new(method, url);
+        let bytes = await new Soup.Session().send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
+        if(message.statusCode !== Soup.Status.OK)
+            throw new Error('Unexpected response: %s'.format(Soup.Status.get_phrase(statusCode)));
+
+        return new TextDecoder().decode(bytes.get_data());
     }
 
     _onModeChanged() {
         this._button.remove_style_class_name(this._tmpMode);
-        this._button.add_style_class_name(this.proxymode);
+        this._button.add_style_class_name(this.proxy_mode);
         this._updateMenu();
     }
 
     _syncSubscribe() {
         Main.notify(Me.metadata.name, _('Start synchronizing.'));
         this._fetchSubs().then(scc => {
-            this.subscache = scc;
+            this.subs_cache = scc;
             this._updateMenu();
             Main.notify(Me.metadata.name, _('Synchronized successfully.'));
         }).catch(err => {
-            Main.notifyError(Me.metadata.name, err);
+            Main.notifyError(Me.metadata.name, err.message);
         });
     }
 
@@ -111,14 +105,14 @@ const Shadowsocks = GObject.registerClass({
                 let conf = {};
                 if(config) {
                     Object.assign(conf, JSON.parse(JSON.stringify(config).replace(/encryption/g, 'method').replace(/port/g, 'server_port')));
-                    this.servername = config.remarks;
+                    this.server_name = config.remarks;
                     this._updateMenu();
                 } else {
-                    let subs = this._subscache;
-                    conf = { server: subs.servers.map(x => x.server).filter(x => x != '127.0.0.1'), server_port: subs.port, password: subs.password, method: subs.encryption, };
+                    conf = { server: this._subs_cache.servers.map(x => x.server).filter(x => x != '127.0.0.1'),
+                        server_port: this._subs_cache.port, password: this._subs_cache.password, method: this._subs_cache.encryption, };
                 }
-                let local = { local_port: this.localport, timeout: this.localtime, };
-                if(this.localaddr) local.local_address = this.localaddr;
+                let local = { local_port: this.local_port, timeout: this.local_time, };
+                if(this.local_addr) local.local_address = this.local_addr;
                 if(this.additions) Object.assign(local, JSON.parse(this.additions));
                 Object.assign(conf, local);
                 if(!this.filename) throw new Error(_('Config file is not set.'));
@@ -131,9 +125,9 @@ const Shadowsocks = GObject.registerClass({
     }
 
     _checkCache() {
-        if(this.subscache) {
+        if(this.subs_cache) {
             return true;
-        } else if(this.subslink) {
+        } else if(this.subs_link) {
             this._syncSubscribe();
             return false;
         } else {
@@ -145,7 +139,7 @@ const Shadowsocks = GObject.registerClass({
         if(gsettings.get_boolean('gen-all')) { // NOTE: need redesign
             this._genConfig().then(() => { Util.spawnCommandLine(this.restart); });
         } else {
-            let conf = this._subscache.servers.find(x => x.remarks == this.servername);
+            let conf = this._subs_cache.servers.find(x => x.remarks == this.server_name);
             if(conf) this._genConfig(conf).then(() => { Util.spawnCommandLine(this.restart); });
         }
     }
@@ -169,7 +163,7 @@ const Shadowsocks = GObject.registerClass({
         }
         addButtonItem('emblem-system-symbolic', () => { item._getTopMenu().close(); ExtensionUtils.openPrefs(); });
         addButtonItem('view-refresh-symbolic', () => { item._getTopMenu().close(); this._restartService(); });
-        addButtonItem('face-cool-symbolic', () => { this.litemode = !this.litemode; this._updateMenu(); });
+        addButtonItem('face-cool-symbolic', () => { this.lite_mode = !this.lite_mode; this._updateMenu(); });
         addButtonItem('network-workgroup-symbolic', () => { item._getTopMenu().close(); this._networkSetting(); });
         item.add_child(hbox);
         return item;
@@ -179,11 +173,11 @@ const Shadowsocks = GObject.registerClass({
         let items = [];
         for(let x in this.MODES) {
             let item = new PopupMenu.PopupMenuItem(this.MODES[x]);
-            if(x === this.proxymode) {
+            if(x === this.proxy_mode) {
                 this._tmpMode = x;
                 item.setOrnament(PopupMenu.Ornament.DOT);
             } else {
-                item.connect('activate', () => { item._getTopMenu().close(); this.proxymode = x; });
+                item.connect('activate', () => { item._getTopMenu().close(); this.proxy_mode = x; });
             }
             items.push(item);
         }
@@ -192,23 +186,24 @@ const Shadowsocks = GObject.registerClass({
 
     _updateMenu(callback) {
         this._button.menu.removeAll();
-        if(this.litemode) {
+        if(this.lite_mode) {
             this._proxyItems().forEach(item => { this._button.menu.addMenuItem(item); });
         } else {
-            let proxy = new PopupMenu.PopupSubMenuMenuItem(_("Proxy: ") + this.MODES[this.proxymode]);
+            let proxy = new PopupMenu.PopupSubMenuMenuItem(_("Proxy: ") + this.MODES[this.proxy_mode]);
             this._proxyItems().forEach(item => { proxy.menu.addMenuItem(item); });
             this._button.menu.addMenuItem(proxy);
 
             if(this._checkCache()) {
-                let subs = this._subscache;
+                let subs = this._subs_cache;
                 let servers = new PopupMenu.PopupSubMenuMenuItem(_('Airport: ') + "%d/%d".format(subs.traffic_used, subs.traffic_total));
                 subs.servers.forEach(x => {
                     let item = new PopupMenu.PopupMenuItem(x.remarks, { style_class: 'ss-subscriber-item popup-menu-item' });
                     if(typeof callback == 'function') callback(x.server, item);
-                    if(x.remarks === this.servername) {
+                    if(x.remarks === this.server_name) {
                         item.setOrnament(PopupMenu.Ornament.DOT);
                     } else {
-                        item.connect('activate', () => { item._getTopMenu().close(); this._genConfig(x).then(() => { Util.spawnCommandLine(this.restart); }); });
+                        item.connect('activate', () => { item._getTopMenu().close();
+                            this._genConfig(x).then(() => { Util.spawnCommandLine(this.restart); }); });
                     }
                     servers.menu.addMenuItem(item);
                 });
@@ -230,14 +225,14 @@ const Shadowsocks = GObject.registerClass({
             style_class: 'ss-subscriber system-status-icon',
             gicon: new Gio.FileIcon({ file: Gio.File.new_for_path(PAPER_PLANE_ICON) }),
         }));
-        this._button.add_style_class_name(this.proxymode);
+        this._button.add_style_class_name(this.proxy_mode);
         Main.panel.addToStatusArea(Me.metadata.uuid, this._button);
         this._updateMenu();
     }
 
     destroy() {
-        if(this.proxymodeId)
-            proxyGsettings.disconnect(this.proxymodeId), this.proxymodeId = 0;
+        if(this.proxyModeId)
+            proxyGsettings.disconnect(this.proxyModeId), this.proxyModeId = 0;
         this._button.destroy();
         delete this._button;
     }
