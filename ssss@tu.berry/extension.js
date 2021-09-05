@@ -77,7 +77,7 @@ const Shadowsocks = GObject.registerClass({
         let message = Soup.Message.new(method, url);
         let bytes = await new Soup.Session().send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
         if(message.statusCode !== Soup.Status.OK)
-            throw new Error('Unexpected response: %s'.format(Soup.Status.get_phrase(statusCode)));
+            throw new Error('Unexpected response: %s'.format(Soup.Status.get_phrase(message.statusCode)));
 
         return new TextDecoder().decode(bytes.get_data());
     }
@@ -99,29 +99,21 @@ const Shadowsocks = GObject.registerClass({
         });
     }
 
-    _genConfig(config) {
-        return new Promise((resolve, reject) => {
-            try {
-                let conf = {};
-                if(config) {
-                    Object.assign(conf, JSON.parse(JSON.stringify(config).replace(/encryption/g, 'method').replace(/port/g, 'server_port')));
-                    this.server_name = config.remarks;
-                    this._updateMenu();
-                } else {
-                    conf = { server: this._subs_cache.servers.map(x => x.server).filter(x => x != '127.0.0.1'),
-                        server_port: this._subs_cache.port, password: this._subs_cache.password, method: this._subs_cache.encryption, };
-                }
-                let local = { local_port: this.local_port, timeout: this.local_time, };
-                if(this.local_addr) local.local_address = this.local_addr;
-                if(this.additions) Object.assign(local, JSON.parse(this.additions));
-                Object.assign(conf, local);
-                if(!this.filename) throw new Error(_('Config file is not set.'));
-                Gio.File.new_for_path(this.filename).replace_contents(JSON.stringify(conf, null, 2), null, false, Gio.FileCreateFlags.PRIVATE, null);
-                resolve();
-            } catch(e) {
-                reject(e.message);
-            }
-        });
+    async _genConfig(config) {
+        let conf = {};
+        if(config) {
+            Object.assign(conf, JSON.parse(JSON.stringify(config).replace(/encryption/g, 'method').replace(/port/g, 'server_port')));
+            this.server_name = config.remarks;
+            this._updateMenu();
+        } else {
+            conf = { server: this._subs_cache.servers.map(x => x.server).filter(x => x != '127.0.0.1'),
+                server_port: this._subs_cache.port, password: this._subs_cache.password, method: this._subs_cache.encryption, };
+        }
+        let local = { local_port: this.local_port, timeout: this.local_time, local_addr: this.local_addr || undefined };
+        if(this.additions) Object.assign(local, JSON.parse(this.additions));
+        conf = JSON.stringify(Object.assign(conf, local), null, 2);
+        if(!this.filename) throw new Error(_('Config file is not set.'));
+        Gio.File.new_for_path(this.filename).replace_contents(conf, null, false, Gio.FileCreateFlags.PRIVATE, null);
     }
 
     _checkCache() {
@@ -161,10 +153,10 @@ const Shadowsocks = GObject.registerClass({
             btn.connect('clicked', func);
             hbox.add_child(btn);
         }
-        addButtonItem('emblem-system-symbolic', () => { item._getTopMenu().close(); ExtensionUtils.openPrefs(); });
-        addButtonItem('view-refresh-symbolic', () => { item._getTopMenu().close(); this._restartService(); });
+        addButtonItem('emblem-system-symbolic', () => { this._button.menu.close(); ExtensionUtils.openPrefs(); });
+        addButtonItem('view-refresh-symbolic', () => { this._button.menu.close(); this._restartService(); });
         addButtonItem('face-cool-symbolic', () => { this.lite_mode = !this.lite_mode; this._updateMenu(); });
-        addButtonItem('network-workgroup-symbolic', () => { item._getTopMenu().close(); this._networkSetting(); });
+        addButtonItem('network-workgroup-symbolic', () => { this._button.menu.close(); this._networkSetting(); });
         item.add_child(hbox);
         return item;
     }
@@ -177,7 +169,7 @@ const Shadowsocks = GObject.registerClass({
                 this._tmpMode = x;
                 item.setOrnament(PopupMenu.Ornament.DOT);
             } else {
-                item.connect('activate', () => { item._getTopMenu().close(); this.proxy_mode = x; });
+                item.connect('activate', () => { this._button.menu.close(); this.proxy_mode = x; });
             }
             items.push(item);
         }
@@ -192,7 +184,6 @@ const Shadowsocks = GObject.registerClass({
             let proxy = new PopupMenu.PopupSubMenuMenuItem(_("Proxy: ") + this.MODES[this.proxy_mode]);
             this._proxyItems().forEach(item => { proxy.menu.addMenuItem(item); });
             this._button.menu.addMenuItem(proxy);
-
             if(this._checkCache()) {
                 let subs = this._subs_cache;
                 let servers = new PopupMenu.PopupSubMenuMenuItem(_('Airport: ') + "%d/%d".format(subs.traffic_used, subs.traffic_total));
@@ -202,13 +193,12 @@ const Shadowsocks = GObject.registerClass({
                     if(x.remarks === this.server_name) {
                         item.setOrnament(PopupMenu.Ornament.DOT);
                     } else {
-                        item.connect('activate', () => { item._getTopMenu().close();
+                        item.connect('activate', item => { this._button.menu.close();
                             this._genConfig(x).then(() => { Util.spawnCommandLine(this.restart); }); });
                     }
                     servers.menu.addMenuItem(item);
                 });
                 this._button.menu.addMenuItem(servers);
-
                 let sync = new PopupMenu.PopupMenuItem(_("Sync Subscription"));
                 sync.connect('activate', this._syncSubscribe.bind(this));
                 this._button.menu.addMenuItem(sync);
