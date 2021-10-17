@@ -6,7 +6,7 @@ const Main = imports.ui.main;
 const Util = imports.misc.util;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
-const { GLib, Shell, GObject, Soup, Gio, St } = imports.gi;
+const { GLib, GObject, Soup, Gio, St } = imports.gi;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const _ = ExtensionUtils.gettext;
@@ -137,8 +137,7 @@ const Shadowsocks = GObject.registerClass({
     }
 
     _networkSetting() {
-        let network = Shell.AppSystem.get_default().lookup_app('gnome-network-panel.desktop');
-        if(network) network.activate();
+        Util.spawn(['gnome-control-center', 'network']);
     }
 
     _settingItem() {
@@ -222,7 +221,7 @@ const Shadowsocks = GObject.registerClass({
 
     destroy() {
         if(this.proxyModeId)
-            proxyGsettings.disconnect(this.proxyModeId), this.proxyModeId = 0;
+            proxyGsettings.disconnect(this.proxyModeId), delete this.proxyModeId;
         this._button.destroy();
         delete this._button;
     }

@@ -1,6 +1,6 @@
 # ss-subscriber
 
-Simple shadowsocks subscriber (SSD only), yet another proxy switcher for gnome shell.
+Simple shadowsocks subscriber (SSD only), yet another proxy switcher for GNOME Shell.
 > data **提问的智慧** = 别问 | 问就是**提问的智慧**<br>
 [![license]](/LICENSE)
 <br>
@@ -15,12 +15,12 @@ Simple shadowsocks subscriber (SSD only), yet another proxy switcher for gnome s
 
 ### Manual
 
-The latest and supported version should only work on the the most current stable version of GNOME Shell.
+The latest and supported version should only work on the most current stable version of GNOME Shell.
 
 ```bash
 git clone https://github.com/tuberry/ss-subscriber.git && cd ss-subscriber
 make && make install
-# make mergepo # for translation
+# make LANG=your_language_code mergepo # for translation
 ```
 
 For older versions, it's necessary to switch the git tag before `make`:
