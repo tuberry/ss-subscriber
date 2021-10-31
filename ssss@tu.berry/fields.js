@@ -1,6 +1,8 @@
 // vim:fdm=syntax
 // by tuberry
-//
+/* exported Fields */
+'use strict';
+
 var Fields = {
     PROXYMODE:  'mode',
     LITEMODE:   'lite-mode',

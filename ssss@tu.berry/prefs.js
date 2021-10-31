@@ -1,5 +1,6 @@
 // vim:fdm=syntax
 // by tuberry
+/* exported init buildPrefsWidget */
 'use strict';
 
 const { Gio, Gtk, GLib, GObject } = imports.gi;
@@ -22,8 +23,7 @@ function init() {
 const SSSubscriberPrefs = GObject.registerClass(
 class SSSubscriberPrefs extends Gtk.ScrolledWindow {
     _init() {
-        super._init({ vscrollbar_policy: Gtk.PolicyType.NEVER, });
-
+        super._init({ vscrollbar_policy: Gtk.PolicyType.NEVER });
         this._buildWidgets();
         this._bindValues();
         this._buildUI();
@@ -65,7 +65,6 @@ class SSSubscriberPrefs extends Gtk.ScrolledWindow {
         gsettings.bind(Fields.ADDITIONAL, this._field_additional, 'text',   Gio.SettingsBindFlags.DEFAULT);
         gsettings.bind(Fields.SUBSLINK,   this._field_subs_link,  'text',   Gio.SettingsBindFlags.DEFAULT);
         gsettings.bind(Fields.RESTART,    this._field_restart,    'text',   Gio.SettingsBindFlags.DEFAULT);
-
         this._field_local_addr._set_edit();
         this._field_subs_link._set_edit();
         this._field_additional._set_edit();
@@ -82,7 +81,7 @@ class SSSubscriberPrefs extends Gtk.ScrolledWindow {
             file.replace_contents(JSON.stringify(conf, null, 2), null, false, Gio.FileCreateFlags.PRIVATE, null);
             let proc = new Gio.Subprocess({
                 argv: GLib.shell_parse_argv(gsettings.get_string(Fields.RESTART)),
-                flags: Gio.SubprocessFlags.STDOUT_SILENCE | Gio.SubprocessFlags.STDERR_SILENCE
+                flags: Gio.SubprocessFlags.STDOUT_SILENCE | Gio.SubprocessFlags.STDERR_SILENCE,
             });
             proc.init(null);
         } catch(e) {
@@ -92,16 +91,11 @@ class SSSubscriberPrefs extends Gtk.ScrolledWindow {
 
     get _localConf() {
         let local = {};
-        if(gsettings.get_string(Fields.LOCALADDR))
-            local.local_address = gsettings.get_string(Fields.LOCALADDR);
+        if(gsettings.get_string(Fields.LOCALADDR)) local.local_address = gsettings.get_string(Fields.LOCALADDR);
         local.local_port = gsettings.get_uint(Fields.LOCALPORT);
         local.timeout = gsettings.get_uint(Fields.LOCALTIME);
-        if(gsettings.get_string(Fields.ADDITIONAL))
-            try {
-                Object.assign(local, JSON.parse(gsettings.get_string(Fields.ADDITIONAL)));
-            } catch(e) {
-                //
-            }
+        if(gsettings.get_string(Fields.ADDITIONAL)) Object.assign(local, JSON.parse(gsettings.get_string(Fields.ADDITIONAL)));
+
         return local;
     }
 
@@ -117,6 +111,7 @@ class SSSubscriberPrefs extends Gtk.ScrolledWindow {
     _linkMaker(x, y) {
         let entry = new UI.Entry(x, y);
         entry.set_visibility(false);
+
         return entry;
     }
 });

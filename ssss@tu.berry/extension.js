@@ -1,5 +1,6 @@
 // vim:fdm=syntax
 // by tuberry
+/* exported init */
 'use strict';
 
 const Main = imports.ui.main;
@@ -37,8 +38,8 @@ const Shadowsocks = GObject.registerClass({
         this.MODES = { auto: _('Automatic'), manual: _('Manual'), none: _('Disable') };
         this._bindSettings();
         this._addIndicator();
-        this.proxyModeId = proxyGsettings.connect('changed::' + Fields.PROXYMODE, this._onModeChanged.bind(this));
-        if(this.auto_subs) this._fetchSubs().then(scc => { this.subs_cache = scc; })
+        this.proxyModeId = proxyGsettings.connect('changed::%s'.format(Fields.PROXYMODE), this._onModeChanged.bind(this));
+        if(this.auto_subs) this._fetchSubs().then(scc => { this.subs_cache = scc; });
     }
 
     _bindSettings() {
@@ -58,8 +59,8 @@ const Shadowsocks = GObject.registerClass({
 
     get _subs_cache() {
         let fix = x => x.replace(/-/g, '+').replace(/_/g, '/');
-        let fill = x => x.length % 4 === 0 ? x : x + "=".repeat(4 - x.length % 4);
-        let decode = x => eval("'" + new TextDecoder().decode(GLib.base64_decode(fill(fix(x)))) + "'");
+        let fill = x => x.length % 4 === 0 ? x : x + '='.repeat(4 - x.length % 4);
+        let decode = x => eval("'%s'".format(new TextDecoder().decode(GLib.base64_decode(fill(fix(x))))));
         let caches = JSON.parse(decode(this.subs_cache.slice(6)).replace(/\s/g, ' '));
 
         return caches;
@@ -67,7 +68,7 @@ const Shadowsocks = GObject.registerClass({
 
     async _fetchSubs() {
         if(!this.subs_link) throw new Error(_('Subscription link is missing.'));
-        let result = await this.visit('GET', this.subs_link)
+        let result = await this.visit('GET', this.subs_link);
         if(!result) throw new Error(_('Error: Subscription content is empty.'));
 
         return result;
@@ -76,8 +77,7 @@ const Shadowsocks = GObject.registerClass({
     async visit(method, url) {
         let message = Soup.Message.new(method, url);
         let bytes = await new Soup.Session().send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
-        if(message.statusCode !== Soup.Status.OK)
-            throw new Error('Unexpected response: %s'.format(Soup.Status.get_phrase(message.statusCode)));
+        if(message.statusCode !== Soup.Status.OK) throw new Error('Unexpected response: %s'.format(Soup.Status.get_phrase(message.statusCode)));
 
         return new TextDecoder().decode(bytes.get_data());
     }
@@ -99,21 +99,24 @@ const Shadowsocks = GObject.registerClass({
         });
     }
 
-    async _genConfig(config) {
+    _genConfig(config, callback) {
         let conf = {};
         if(config) {
             Object.assign(conf, JSON.parse(JSON.stringify(config).replace(/encryption/g, 'method').replace(/port/g, 'server_port')));
             this.server_name = config.remarks;
             this._updateMenu();
         } else {
-            conf = { server: this._subs_cache.servers.map(x => x.server).filter(x => x != '127.0.0.1'),
-                server_port: this._subs_cache.port, password: this._subs_cache.password, method: this._subs_cache.encryption, };
+            conf = {
+                server: this._subs_cache.servers.map(x => x.server).filter(x => x !== '127.0.0.1'),
+                server_port: this._subs_cache.port, password: this._subs_cache.password, method: this._subs_cache.encryption,
+            };
         }
         let local = { local_port: this.local_port, timeout: this.local_time, local_addr: this.local_addr || undefined };
         if(this.additions) Object.assign(local, JSON.parse(this.additions));
         conf = JSON.stringify(Object.assign(conf, local), null, 2);
         if(!this.filename) throw new Error(_('Config file is not set.'));
         Gio.File.new_for_path(this.filename).replace_contents(conf, null, false, Gio.FileCreateFlags.PRIVATE, null);
+        callback();
     }
 
     _checkCache() {
@@ -129,10 +132,10 @@ const Shadowsocks = GObject.registerClass({
 
     _restartService() {
         if(gsettings.get_boolean('gen-all')) { // NOTE: need redesign
-            this._genConfig().then(() => { Util.spawnCommandLine(this.restart); });
+            this._genConfig(null, () => { Util.spawnCommandLine(this.restart); });
         } else {
-            let conf = this._subs_cache.servers.find(x => x.remarks == this.server_name);
-            if(conf) this._genConfig(conf).then(() => { Util.spawnCommandLine(this.restart); });
+            let conf = this._subs_cache.servers.find(x => x.remarks === this.server_name);
+            if(conf) this._genConfig(conf, () => { Util.spawnCommandLine(this.restart); });
         }
     }
 
@@ -147,11 +150,11 @@ const Shadowsocks = GObject.registerClass({
             let btn = new St.Button({
                 x_expand: true,
                 style_class: 'ss-subscriber-button',
-                child: new St.Icon({ icon_name: icon, style_class: 'ss-subscriber-icon popup-menu-icon', }),
+                child: new St.Icon({ icon_name: icon, style_class: 'ss-subscriber-icon popup-menu-icon' }),
             });
             btn.connect('clicked', func);
             hbox.add_child(btn);
-        }
+        };
         addButtonItem('emblem-system-symbolic', () => { this._button.menu.close(); ExtensionUtils.openPrefs(); });
         addButtonItem('view-refresh-symbolic', () => { this._button.menu.close(); this._restartService(); });
         addButtonItem('face-cool-symbolic', () => { this.lite_mode = !this.lite_mode; this._updateMenu(); });
@@ -180,25 +183,27 @@ const Shadowsocks = GObject.registerClass({
         if(this.lite_mode) {
             this._proxyItems().forEach(item => { this._button.menu.addMenuItem(item); });
         } else {
-            let proxy = new PopupMenu.PopupSubMenuMenuItem(_("Proxy: ") + this.MODES[this.proxy_mode]);
+            let proxy = new PopupMenu.PopupSubMenuMenuItem(_('Proxy: ') + this.MODES[this.proxy_mode]);
             this._proxyItems().forEach(item => { proxy.menu.addMenuItem(item); });
             this._button.menu.addMenuItem(proxy);
             if(this._checkCache()) {
                 let subs = this._subs_cache;
-                let servers = new PopupMenu.PopupSubMenuMenuItem(_('Airport: ') + "%d/%d".format(subs.traffic_used, subs.traffic_total));
+                let servers = new PopupMenu.PopupSubMenuMenuItem(_('Airport: ') + '%d/%d'.format(subs.traffic_used, subs.traffic_total));
                 subs.servers.forEach(x => {
                     let item = new PopupMenu.PopupMenuItem(x.remarks, { style_class: 'ss-subscriber-item popup-menu-item' });
-                    if(typeof callback == 'function') callback(x.server, item);
+                    if(typeof callback === 'function') callback(x.server, item);
                     if(x.remarks === this.server_name) {
                         item.setOrnament(PopupMenu.Ornament.DOT);
                     } else {
-                        item.connect('activate', item => { this._button.menu.close();
-                            this._genConfig(x).then(() => { Util.spawnCommandLine(this.restart); }); });
+                        item.connect('activate', () => {
+                            this._button.menu.close();
+                            this._genConfig(x, () => { Util.spawnCommandLine(this.restart); });
+                        });
                     }
                     servers.menu.addMenuItem(item);
                 });
                 this._button.menu.addMenuItem(servers);
-                let sync = new PopupMenu.PopupMenuItem(_("Sync Subscription"));
+                let sync = new PopupMenu.PopupMenuItem(_('Sync Subscription'));
                 sync.connect('activate', this._syncSubscribe.bind(this));
                 this._button.menu.addMenuItem(sync);
             }
@@ -220,8 +225,7 @@ const Shadowsocks = GObject.registerClass({
     }
 
     destroy() {
-        if(this.proxyModeId)
-            proxyGsettings.disconnect(this.proxyModeId), delete this.proxyModeId;
+        if(this.proxyModeId) proxyGsettings.disconnect(this.proxyModeId), delete this.proxyModeId;
         this._button.destroy();
         delete this._button;
     }
@@ -240,7 +244,7 @@ const Extension = class Extension {
         this._ext.destroy();
         delete this._ext;
     }
-}
+};
 
 function init() {
     return new Extension();
