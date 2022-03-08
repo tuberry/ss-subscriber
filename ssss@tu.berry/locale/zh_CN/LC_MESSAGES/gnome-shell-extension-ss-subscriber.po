@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnome-shell-extension-ss-subscriber 21\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-08-18 14:28+0800\n"
+"POT-Creation-Date: 2022-03-04 16:17+0800\n"
 "PO-Revision-Date: 2021-08-18 14:28+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -17,99 +17,106 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: extension.js:38
-msgid "Automatic"
-msgstr "自动"
-
-#: extension.js:38
-msgid "Manual"
-msgstr "手动"
-
-#: extension.js:38
-msgid "Disable"
-msgstr "禁用"
-
-#: extension.js:72
+#: extension.js:189
 msgid "Subscription link is missing."
 msgstr "未设置订阅链接。"
 
-#: extension.js:80
-msgid "Error: Subscription content is empty."
-msgstr "错误：订阅内容为空。"
+#: extension.js:213
+msgid "Automatic"
+msgstr "自动"
 
-#: extension.js:98
-msgid "Start synchronizing."
-msgstr "开始同步。"
+#: extension.js:213
+msgid "Manual"
+msgstr "手动"
 
-#: extension.js:102
-msgid "Synchronized successfully."
-msgstr "订阅更新成功。"
+#: extension.js:213
+msgid "Disable"
+msgstr "禁用"
 
-#: extension.js:124
-msgid "Config file is not set."
-msgstr "未设置配置文件。"
-
-#: extension.js:198
+#: extension.js:216
 msgid "Proxy: "
 msgstr "代理："
 
-#: extension.js:204
+#: extension.js:217
 msgid "Airport: "
 msgstr "提供商："
 
-#: extension.js:217
+#: extension.js:218
 msgid "Sync Subscription"
 msgstr "更新订阅"
 
-#: prefs.js:36
-msgid "Can be blank"
-msgstr "可以为空"
+#: extension.js:232
+msgid "Start synchronizing."
+msgstr "开始同步。"
 
-#: prefs.js:37
-msgid "Auto update subscription (not config file)"
-msgstr "启动时自动更新订阅（但不改变配置文件）"
+#: extension.js:234
+msgid "Synchronized successfully."
+msgstr "订阅更新成功。"
 
-#: prefs.js:38
+#: extension.js:241
+msgid "Config file is not set."
+msgstr "未设置配置文件。"
+
+#: prefs.js:42
+msgid "Resart"
+msgstr "重启"
+
+#: prefs.js:43
 msgid "JSON format, can be blank"
 msgstr "JSON 格式，可以为空"
 
-#: prefs.js:39
+#: prefs.js:44
 msgid "Subscription link (SSD only)"
 msgstr "订阅链接(仅支持 SSD)"
 
-#: prefs.js:40
+#: prefs.js:45
 msgid "Command to restart"
 msgstr "重启命令"
 
-#: prefs.js:41
-#, javascript-format
-msgid "See <span><a href=\"%s\">%s</a></span> for pre-steps to use it."
-msgstr "前置步骤参见<span><a href=\"%s\">%s</a></span> "
+#: prefs.js:46
+msgid "Can be blank"
+msgstr "可以为空"
 
-#: prefs.js:45
-msgid "Apply"
-msgstr "应用"
-
-#: prefs.js:45
-msgid "Apply new config then restart service"
-msgstr "应用设置后重启服务"
-
-#: prefs.js:50
+#: prefs.js:51
 msgid "Subs link"
 msgstr "订阅链接"
 
-#: prefs.js:51
+#: prefs.js:52
 msgid "Conf file"
 msgstr "配置文件"
 
-#: prefs.js:52
+#: prefs.js:53
 msgid "Timeout"
 msgstr "超时时间"
 
-#: prefs.js:53
-msgid "Address and port"
+#: prefs.js:54
+msgid "Addr &amp; port"
 msgstr "地址端口"
 
-#: prefs.js:54
+#: prefs.js:55
 msgid "Addtional"
 msgstr "附加设置"
+
+#: ui.js:56
+msgid "Clear"
+msgstr "清除"
+
+#: ui.js:254
+msgid "Click or Press ENTER to commit changes"
+msgstr "单击或按回车提交更改"
+
+#~ msgid "Error: Subscription content is empty."
+#~ msgstr "错误：订阅内容为空。"
+
+#~ msgid "Apply"
+#~ msgstr "应用"
+
+#~ msgid "Auto update subscription (not config file)"
+#~ msgstr "启动时自动更新订阅（但不改变配置文件）"
+
+#, javascript-format
+#~ msgid "See <span><a href=\"%s\">%s</a></span> for pre-steps to use it."
+#~ msgstr "前置步骤参见<span><a href=\"%s\">%s</a></span> "
+
+#~ msgid "Apply new config then restart service"
+#~ msgstr "应用设置后重启服务"

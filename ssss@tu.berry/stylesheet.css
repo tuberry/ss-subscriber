@@ -1,28 +1,21 @@
 /* Add your custom extension styling here */
 
-.ss-subscriber-item {
-    max-width: 20em;
+.ss-subscriber-menu {
+    max-width: 25em;
 }
 
-.ss-subscriber-item-timeout {
-    color: red;
-}
-
-.ss-subscriber-button:hover {
+.ss-subscriber-setting:hover {
     color: deepskyblue;
 }
 
-.ss-subscriber-icon {
-}
-
-.none .ss-subscriber {
+.ss-subscriber-systray:none {
     color: none;
 }
 
-.auto .ss-subscriber {
+.ss-subscriber-systray:auto {
     color: turquoise;
 }
 
-.manual .ss-subscriber {
+.ss-subscriber-systray:manual {
     color: pink;
 }

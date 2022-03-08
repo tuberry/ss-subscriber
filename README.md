@@ -65,13 +65,12 @@ systemctl --user enable shadowsocks-libev@ssss.service --now
 
 ### Fill blanks
 
-![ssprefs](https://user-images.githubusercontent.com/17917040/112720157-9c1c3680-8f37-11eb-9c75-8d5115acf93c.png)
+![ssprefs](https://user-images.githubusercontent.com/17917040/155883556-0c302a49-e900-4d47-a814-240457f4fb4b.png)
 
 ## Acknowledgements
 
 * [proxy-switcher](https://github.com/tomflannaghan/proxy-switcher): network setting button
 * [SSD-windows](https://github.com/TheCGDF/SSD-Windows/wiki/HTTP-Subscription-Agreement): SSD http subscription agreement
-* [GS-shadowsocks](https://github.com/ylxdzsw/gnome-shell-extension-shadowsocks): panel menu arrangement
 
 [license]:https://img.shields.io/badge/license-GPLv3-green.svg
 [EGO]:https://extensions.gnome.org/extension/3073/ss-subscriber/

@@ -5,18 +5,6 @@
             <default>false</default>
             <summary>menu lite mode</summary>
         </key>
-        <key type="b" name="auto-subscribe">
-            <default>false</default>
-            <summary>update subscribe caches when enable</summary>
-        </key>
-        <key type="b" name="gen-all">
-            <default>false</default>
-            <summary>genAll</summary>
-        </key>
-        <key type="s" name="subscribe-caches">
-            <default>""</default>
-            <summary>subscription caches</summary>
-        </key>
         <key type="s" name="subscribe-link">
             <default>""</default>
             <summary>link of subscribing</summary>
