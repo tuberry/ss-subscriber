@@ -19,7 +19,7 @@ let [gsettings, pgsettings] = Array(2).fill(null);
 const noop = () => {};
 const dc = x => new TextDecoder().decode(x);
 const ec = x => new TextEncoder().encode(x);
-const genIcon = x => Gio.Icon.new_for_string(Me.dir.get_child('icons').get_child('%s-symbolic.svg'.format(x)).get_path());
+const genIcon = x => Gio.Icon.new_for_string(Me.dir.get_child('icons').get_child(`${x}-symbolic.svg`).get_path());
 const genParam = (type, name, ...dflt) => GObject.ParamSpec[type](name, name, name, GObject.ParamFlags.READWRITE, ...dflt);
 
 Gio._promisify(Gio.File.prototype, 'create_async');
@@ -77,14 +77,14 @@ class DIndexItem extends PopupMenu.PopupSubMenuMenuItem {
 
     setSelected(index) {
         this._index = index;
-        this.label.set_text('%s%s'.format(this._name, this._call2(this._index) || ''));
+        this.label.set_text(`${this._name}${this._call2(this._index) || ''}`);
         this._items.forEach((y, i) => y.setOrnament(index === i ? PopupMenu.Ornament.DOT : PopupMenu.Ornament.NONE));
     }
 
     setList(list) {
         let items = this._items;
         let diff = list.length - items.length;
-        if(diff > 0) for(let a = 0; a < diff; a++) this.menu.addMenuItem(new MenuItem('', () => { this._call1(items.length + a); }));
+        if(diff > 0) for(let a = 0; a < diff; a++) this.menu.addMenuItem(new MenuItem('', () => this._call1(items.length + a)));
         else if(diff < 0) for(let a = 0; a > diff; a--) items.at(a - 1).destroy();
         this._list = list;
         this._items.forEach((x, i) => x.setLabel(list[i]));
@@ -99,7 +99,7 @@ class RadioSection extends PopupMenu.PopupMenuSection {
     constructor(modes, index, callback) {
         super('');
         this._list = Array.isArray(modes) ? modes : Object.keys(modes);
-        this._list.map((x, i) => new MenuItem(_(x), () => { callback(i); })).forEach(x => this.addMenuItem(x));
+        this._list.map((x, i) => new MenuItem(_(x), () => callback(i))).forEach(x => this.addMenuItem(x));
         this.setSelected(index);
     }
 
@@ -189,7 +189,7 @@ class Shadowsocks extends GObject.Object {
         if(!this.subs_link) throw new Error(_('Subscription link is missing.'));
         let message = Soup.Message.new('GET', this.subs_link);
         let bytes = await new Soup.Session().send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
-        if(message.statusCode !== Soup.Status.OK) throw new Error('Unexpected response: %s'.format(Soup.Status.get_phrase(message.statusCode)));
+        if(message.statusCode !== Soup.Status.OK) throw new Error(`Unexpected response: ${Soup.Status.get_phrase(message.statusCode)}`);
         this.subs = JSON.parse(dc(GLib.base64_decode(dc(bytes.get_data().slice(6))))); // ignore 6-chars prefix
         let file = this.cache;
         await file.create_async(Gio.FileCreateFlags.NONE, GLib.PRIORITY_DEFAULT, null).catch(noop);
@@ -214,13 +214,13 @@ class Shadowsocks extends GObject.Object {
         this._menus = {
             lite:     new RadioSection(MODES, Mode[this._proxy], x => pgsettings.set_string(Fields.PROXY, Mode[x])),
             proxy:    new DIndexItem(_('Proxy: '), MODES, Mode[this._proxy], x => pgsettings.set_string(Fields.PROXY, Mode[x])),
-            airport:  new DIndexItem(_('Airport: '), this.servers, this.server, x => { this.server = x; }, () => this.traffic),
+            airport:  new DIndexItem(_('Airport: '), this.servers, this.server, x => (this.server = x), () => this.traffic),
             sync:     new MenuItem(_('Sync Subscription'), this._subscribe.bind(this)),
             sep:      new PopupMenu.PopupSeparatorMenuItem(),
             settings: new IconItem('ss-subscriber-setting', [
                 ['emblem-system-symbolic',     () => { this._button.menu.close(); ExtensionUtils.openPrefs(); }],
                 ['view-refresh-symbolic',      () => { this._button.menu.close(); Util.spawnCommandLine(this.restart); }],
-                ['face-cool-symbolic',         () => { gsettings.set_boolean(Fields.LITE, !this._lite_mode); }],
+                ['face-cool-symbolic',         () => gsettings.set_boolean(Fields.LITE, !this._lite_mode)],
                 ['network-workgroup-symbolic', () => { this._button.menu.close(); Util.spawn(['gnome-control-center', 'network']); }],
             ]),
         };
@@ -260,7 +260,7 @@ class Shadowsocks extends GObject.Object {
     }
 
     get traffic() {
-        return '%d/%d'.format(this.subs?.traffic_used ?? 0, this.subs?.traffic_total ?? 0);
+        return `${Math.round(this.subs?.traffic_used ?? 0)}/${this.subs?.traffic_total ?? 0}`;
     }
 
     set local_addr(addr) {
