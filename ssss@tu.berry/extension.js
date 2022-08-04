@@ -12,19 +12,43 @@ const { GLib, GObject, Soup, Gio, St } = imports.gi;
 const ExtensionUtils = imports.misc.extensionUtils;
 const _ = ExtensionUtils.gettext;
 const Me = ExtensionUtils.getCurrentExtension();
-const Fields = Me.imports.fields.Fields;
+const { Fields } = Me.imports.fields;
 const Mode = { auto: 0, manual: 1, none: 2, 0: 'auto', 1: 'manual', 2: 'none' };
-let [gsettings, pgsettings] = Array(2).fill(null);
 
 const noop = () => {};
 const dc = x => new TextDecoder().decode(x);
 const ec = x => new TextEncoder().encode(x);
 const genIcon = x => Gio.Icon.new_for_string(Me.dir.get_child('icons').get_child(`${x}-symbolic.svg`).get_path());
-const genParam = (type, name, ...dflt) => GObject.ParamSpec[type](name, name, name, GObject.ParamFlags.READWRITE, ...dflt);
 
 Gio._promisify(Gio.File.prototype, 'create_async');
 Gio._promisify(Gio.File.prototype, 'load_contents_async');
 Gio._promisify(Gio.File.prototype, 'replace_contents_async');
+
+class Field {
+    constructor(prop, gset, obj) {
+        this.gset = typeof gset === 'string' ? new Gio.Settings({ schema: gset }) : gset;
+        this.prop = prop;
+        this.bind(obj);
+    }
+
+    _get(x) {
+        return this.gset[`get_${this.prop[x][1]}`](this.prop[x][0]);
+    }
+
+    _set(x, y) {
+        this.gset[`set_${this.prop[x][1]}`](this.prop[x][0], y);
+    }
+
+    bind(a) {
+        let fs = Object.entries(this.prop);
+        fs.forEach(([x]) => { a[x] = this._get(x); });
+        this.gset.connectObject(...fs.flatMap(([x, [y]]) => [`changed::${y}`, () => { a[x] = this._get(x); }]), a);
+    }
+
+    unbind(a) {
+        this.gset.disconnectObject(a);
+    }
+}
 
 class IconItem extends PopupMenu.PopupBaseMenuItem {
     static {
@@ -117,26 +141,8 @@ class RadioSection extends PopupMenu.PopupMenuSection {
     }
 }
 
-class Shadowsocks extends GObject.Object {
-    static {
-        GObject.registerClass({
-            Properties: {
-                proxy:       genParam('string',  'proxy', ''),
-                restart:     genParam('string',  'restart', ''),
-                filename:    genParam('string',  'filename', ''),
-                additions:   genParam('string',  'additions', ''),
-                subs_link:   genParam('string',  'subs_link', ''),
-                local_addr:  genParam('string',  'local_addr', ''),
-                server_name: genParam('string',  'server_name', ''),
-                lite_mode:   genParam('boolean', 'lite_mode', false),
-                local_time:  genParam('uint',    'local_time', 0, 1000, 300),
-                local_port:  genParam('uint',    'local_port', 0, 65535, 1080),
-            },
-        }, this);
-    }
-
+class Shadowsocks {
     constructor() {
-        super();
         this._addIndicator();
         this._bindSettings();
         this._addMenuItems();
@@ -146,18 +152,18 @@ class Shadowsocks extends GObject.Object {
     }
 
     _bindSettings() {
-        [
-            [Fields.RESTART,  'restart'],
-            [Fields.FILE,     'filename'],
-            [Fields.ADDITION, 'additions'],
-            [Fields.LINK,     'subs_link'],
-            [Fields.LITE,     'lite_mode'],
-            [Fields.ADDR,     'local_addr'],
-            [Fields.PORT,     'local_port'],
-            [Fields.TIME,     'local_time'],
-            [Fields.SERVER,   'server_name', Gio.SettingsBindFlags.DEFAULT],
-        ].forEach(([x, y, z]) => gsettings.bind(x, this, y, z ?? Gio.SettingsBindFlags.GET));
-        pgsettings.bind(Fields.PROXY, this, 'proxy', Gio.SettingsBindFlags.GET);
+        this._field = new Field({
+            restart:     [Fields.RESTART,  'string'],
+            filename:    [Fields.FILE,     'string'],
+            additions:   [Fields.ADDITION, 'string'],
+            subs_link:   [Fields.LINK,     'string'],
+            lite_mode:   [Fields.LITE,     'boolean'],
+            local_addr:  [Fields.ADDR,     'string'],
+            local_port:  [Fields.PORT,     'uint'],
+            local_time:  [Fields.TIME,     'uint'],
+            server_name: [Fields.SERVER,   'string'],
+        }, ExtensionUtils.getSettings(), this);
+        this._pfield = new Field({ 'proxy': [Fields.PROXY, 'string'] }, 'org.gnome.system.proxy', this);
     }
 
     _updateSubs() {
@@ -212,15 +218,15 @@ class Shadowsocks extends GObject.Object {
     _addMenuItems() {
         let MODES = [_('Automatic'), _('Manual'), _('Disable')];
         this._menus = {
-            lite:     new RadioSection(MODES, Mode[this._proxy], x => pgsettings.set_string(Fields.PROXY, Mode[x])),
-            proxy:    new DIndexItem(_('Proxy: '), MODES, Mode[this._proxy], x => pgsettings.set_string(Fields.PROXY, Mode[x])),
+            lite:     new RadioSection(MODES, Mode[this._proxy], x => this._pfield._set('proxy', Mode[x])),
+            proxy:    new DIndexItem(_('Proxy: '), MODES, Mode[this._proxy], x => this._pfield._set('proxy', Mode[x])),
             airport:  new DIndexItem(_('Airport: '), this.servers, this.server, x => (this.server = x), () => this.traffic),
             sync:     new MenuItem(_('Sync Subscription'), this._subscribe.bind(this)),
             sep:      new PopupMenu.PopupSeparatorMenuItem(),
             settings: new IconItem('ss-subscriber-setting', [
                 ['emblem-system-symbolic',     () => { this._button.menu.close(); ExtensionUtils.openPrefs(); }],
                 ['view-refresh-symbolic',      () => { this._button.menu.close(); Util.spawnCommandLine(this.restart); }],
-                ['face-cool-symbolic',         () => gsettings.set_boolean(Fields.LITE, !this._lite_mode)],
+                ['face-cool-symbolic',         () => this._field._set('lite_mode', !this._lite_mode)],
                 ['network-workgroup-symbolic', () => { this._button.menu.close(); Util.spawn(['gnome-control-center', 'network']); }],
             ]),
         };
@@ -232,6 +238,7 @@ class Shadowsocks extends GObject.Object {
         Main.notify(Me.metadata.name, _('Start synchronizing.'));
         this._syncSubs().then(() => {
             Main.notify(Me.metadata.name, _('Synchronized successfully.'));
+            this._updateSubs();
         }).catch(err => {
             Main.notifyError(Me.metadata.name, err.message);
         });
@@ -239,7 +246,7 @@ class Shadowsocks extends GObject.Object {
 
     async _genConfig(config) {
         if(!this.filename) throw new Error(_('Config file is not set.'));
-        this.server_name = config.remarks;
+        this._field._set('server_name', config.remarks);
         let { encryption: method, port: server_port, ...others } = config;
         let { local_port, local_time: timeout, _local_addr: local_address } = this;
         let content = ec(JSON.stringify({ ...others, server_port, method, local_port, local_address, timeout, ...this._additions }, null, 2));
@@ -256,7 +263,7 @@ class Shadowsocks extends GObject.Object {
     }
 
     set server(index) {
-        this._genConfig(this.subs?.servers[index]).catch(noop);
+        this._genConfig(this.subs?.servers[index]).catch(noop).finally(() => this._menus?.airport.setSelected(this.server));
     }
 
     get traffic() {
@@ -276,6 +283,7 @@ class Shadowsocks extends GObject.Object {
     }
 
     destroy() {
+        ['_field', '_pfield'].forEach(x => this[x].unbind(this));
         this._button.destroy();
         this._button = null;
     }
@@ -287,14 +295,12 @@ class Extension {
     }
 
     enable() {
-        gsettings = ExtensionUtils.getSettings();
-        pgsettings = new Gio.Settings({ schema_id: 'org.gnome.system.proxy' });
         this._ext = new Shadowsocks();
     }
 
     disable() {
         this._ext.destroy();
-        gsettings = pgsettings = this._ext = null;
+        this._ext = null;
     }
 }
 

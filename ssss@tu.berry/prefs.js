@@ -9,7 +9,7 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const _ = ExtensionUtils.gettext;
 const gsettings = ExtensionUtils.getSettings();
-const Fields = Me.imports.fields.Fields;
+const { Fields } = Me.imports.fields;
 const UI = Me.imports.ui;
 
 Gio._promisify(Gio.File.prototype, 'replace_contents_async');
