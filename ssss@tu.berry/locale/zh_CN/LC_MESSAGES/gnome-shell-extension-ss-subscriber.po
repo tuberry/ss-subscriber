@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnome-shell-extension-ss-subscriber 21\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-04 16:17+0800\n"
+"POT-Creation-Date: 2022-08-06 19:10+0800\n"
 "PO-Revision-Date: 2021-08-18 14:28+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -17,47 +17,47 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: extension.js:189
+#: extension.js:195
 msgid "Subscription link is missing."
 msgstr "未设置订阅链接。"
 
-#: extension.js:213
+#: extension.js:219
 msgid "Automatic"
 msgstr "自动"
 
-#: extension.js:213
+#: extension.js:219
 msgid "Manual"
 msgstr "手动"
 
-#: extension.js:213
+#: extension.js:219
 msgid "Disable"
 msgstr "禁用"
 
-#: extension.js:216
+#: extension.js:222
 msgid "Proxy: "
 msgstr "代理："
 
-#: extension.js:217
+#: extension.js:223
 msgid "Airport: "
 msgstr "提供商："
 
-#: extension.js:218
+#: extension.js:224
 msgid "Sync Subscription"
 msgstr "更新订阅"
 
-#: extension.js:232
+#: extension.js:238
 msgid "Start synchronizing."
 msgstr "开始同步。"
 
-#: extension.js:234
+#: extension.js:240
 msgid "Synchronized successfully."
 msgstr "订阅更新成功。"
 
-#: extension.js:241
+#: extension.js:248
 msgid "Config file is not set."
 msgstr "未设置配置文件。"
 
-#: prefs.js:42
+#: prefs.js:38
 msgid "Resart"
 msgstr "重启"
 
@@ -77,32 +77,32 @@ msgstr "重启命令"
 msgid "Can be blank"
 msgstr "可以为空"
 
-#: prefs.js:51
+#: prefs.js:54
 msgid "Subs link"
 msgstr "订阅链接"
 
-#: prefs.js:52
+#: prefs.js:55
 msgid "Conf file"
 msgstr "配置文件"
 
-#: prefs.js:53
+#: prefs.js:56
 msgid "Timeout"
 msgstr "超时时间"
 
-#: prefs.js:54
+#: prefs.js:57
 msgid "Addr &amp; port"
 msgstr "地址端口"
 
-#: prefs.js:55
+#: prefs.js:58
 msgid "Addtional"
 msgstr "附加设置"
 
-#: ui.js:56
+#: ui.js:30
 msgid "Clear"
 msgstr "清除"
 
-#: ui.js:254
-msgid "Click or Press ENTER to commit changes"
+#: ui.js:258
+msgid "Click or press ENTER to commit changes"
 msgstr "单击或按回车提交更改"
 
 #~ msgid "Error: Subscription content is empty."
