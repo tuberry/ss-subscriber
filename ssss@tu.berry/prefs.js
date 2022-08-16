@@ -8,7 +8,6 @@ const { Adw, Gio, Gtk, GLib, GObject } = imports.gi;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const _ = ExtensionUtils.gettext;
-const gsettings = ExtensionUtils.getSettings();
 const { Fields } = Me.imports.fields;
 const UI = Me.imports.ui;
 
@@ -35,6 +34,7 @@ class SSSubscriberPrefs extends Adw.PreferencesGroup {
     }
 
     _buildWidgets() {
+        this.gset = ExtensionUtils.getSettings();
         this._restart_btn = new Gtk.Button({ label: _('Resart'), valign: Gtk.Align.CENTER });
         this._field = {
             PORT:     ['value', new UI.Spin(0, 65535, 1)],
@@ -45,7 +45,7 @@ class SSSubscriberPrefs extends Adw.PreferencesGroup {
             RESTART:  ['text',  new UI.LazyEntry('systemctl --user restart shadowsocks@ssss.service', _('Command to restart'))],
             ADDR:     ['text',  new Gtk.Entry({ placeholder_text: 'local_address', tooltip_text: _('Can be blank'), valign: Gtk.Align.CENTER })],
         };
-        Object.entries(this._field).forEach(([x, [y, z]]) => gsettings.bind(Fields[x], z, y, Gio.SettingsBindFlags.DEFAULT));
+        Object.entries(this._field).forEach(([x, [y, z]]) => this.gset.bind(Fields[x], z, y, Gio.SettingsBindFlags.DEFAULT));
         this._restart_btn.connect('clicked', this._updateConfig.bind(this));
     }
 
@@ -65,13 +65,13 @@ class SSSubscriberPrefs extends Adw.PreferencesGroup {
     }
 
     async _updateConfig() {
-        let file = Gio.File.new_for_path(gsettings.get_string(Fields.FILE));
+        let file = Gio.File.new_for_path(this.gset.get_string(Fields.FILE));
         if(!file) return;
         let conf = JSON.parse(new TextDecoder().decode((await file.load_contents_async(null))[0]));
         let buffer = new TextEncoder().encode(JSON.stringify({ ...conf, ...this._localConf }, null, 2));
         await file.replace_contents_async(buffer, null, false, Gio.FileCreateFlags.PRIVATE, null);
         let proc = new Gio.Subprocess({
-            argv: GLib.shell_parse_argv(gsettings.get_string(Fields.RESTART))[1],
+            argv: GLib.shell_parse_argv(this.gset.get_string(Fields.RESTART))[1],
             flags: Gio.SubprocessFlags.STDOUT_SILENCE | Gio.SubprocessFlags.STDERR_SILENCE,
         });
         proc.init(null);
