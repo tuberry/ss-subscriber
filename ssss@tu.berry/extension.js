@@ -50,26 +50,6 @@ class Field {
     }
 }
 
-class IconItem extends PopupMenu.PopupBaseMenuItem {
-    static {
-        GObject.registerClass(this);
-    }
-
-    constructor(style, callbacks) {
-        super({ activate: false });
-        this._style = style;
-        this._hbox = new St.BoxLayout({ x_align: St.Align.START, x_expand: true });
-        callbacks.forEach(xs => this.addButton(...xs));
-        this.add_child(this._hbox);
-    }
-
-    addButton(icon_name, callback) {
-        let btn = new St.Button({ x_expand: true, style_class: this._style, child: new St.Icon({ icon_name, style_class: 'popup-menu-icon' }) });
-        btn.connect('clicked', callback);
-        this._hbox.add_child(btn);
-    }
-}
-
 class MenuItem extends PopupMenu.PopupMenuItem {
     static {
         GObject.registerClass(this);
@@ -101,7 +81,7 @@ class DIndexItem extends PopupMenu.PopupSubMenuMenuItem {
 
     setSelected(index) {
         this._index = index;
-        this.label.set_text(`${this._name}${this._call2(this._index) || ''}`);
+        this.label.set_text(`${this._name}：${this._call2(this._index) || ''}`);
         this._items.forEach((y, i) => y.setOrnament(index === i ? PopupMenu.Ornament.DOT : PopupMenu.Ornament.NONE));
     }
 
@@ -116,28 +96,6 @@ class DIndexItem extends PopupMenu.PopupSubMenuMenuItem {
 
     get _items() {
         return this.menu._getMenuItems();
-    }
-}
-
-class RadioSection extends PopupMenu.PopupMenuSection {
-    constructor(modes, index, callback) {
-        super('');
-        this._list = Array.isArray(modes) ? modes : Object.keys(modes);
-        this._list.map((x, i) => new MenuItem(_(x), () => callback(i))).forEach(x => this.addMenuItem(x));
-        this.setSelected(index);
-    }
-
-    setSelected(index) {
-        if(!(index in this._list)) return;
-        this._getMenuItems().forEach((x, i) => x.setOrnament(index === i ? PopupMenu.Ornament.DOT : PopupMenu.Ornament.NONE));
-    }
-
-    hide() {
-        this._getMenuItems().forEach(x => x.hide());
-    }
-
-    show() {
-        this._getMenuItems().forEach(x => x.show());
     }
 }
 
@@ -157,7 +115,6 @@ class Shadowsocks {
             filename:    [Fields.FILE,     'string'],
             additions:   [Fields.ADDITION, 'string'],
             subs_link:   [Fields.LINK,     'string'],
-            lite_mode:   [Fields.LITE,     'boolean'],
             local_addr:  [Fields.ADDR,     'string'],
             local_port:  [Fields.PORT,     'uint'],
             local_time:  [Fields.TIME,     'uint'],
@@ -179,11 +136,6 @@ class Shadowsocks {
         if(this._proxy) this._button.remove_style_pseudo_class(this._proxy);
         this._button.add_style_pseudo_class(this._proxy = proxy);
         this._menus?.proxy.setSelected(Mode[this._proxy]);
-    }
-
-    set lite_mode(lite_mode) {
-        this._lite_mode = lite_mode;
-        this._checkLiteMode();
     }
 
     async _loadSubs() {
@@ -210,28 +162,18 @@ class Shadowsocks {
         Main.panel.addToStatusArea(Me.metadata.uuid, this._button);
     }
 
-    _checkLiteMode() {
-        this._lite_mode ? this._menus?.lite.show() : this._menus?.lite.hide();
-        ['proxy', 'airport', 'sync'].forEach(x => this._lite_mode ? this._menus?.[x].hide() : this._menus?.[x].show());
-    }
-
     _addMenuItems() {
         let MODES = [_('Automatic'), _('Manual'), _('Disable')];
         this._menus = {
-            lite:     new RadioSection(MODES, Mode[this._proxy], x => this._pfield._set('proxy', Mode[x])),
-            proxy:    new DIndexItem(_('Proxy: '), MODES, Mode[this._proxy], x => this._pfield._set('proxy', Mode[x])),
-            airport:  new DIndexItem(_('Airport: '), this.servers, this.server, x => (this.server = x), () => this.traffic),
+            restart:  new MenuItem(_('Restart service'), () => Util.spawnCommandLine(this.restart)),
+            sep0:     new PopupMenu.PopupSeparatorMenuItem(),
+            airport:  new DIndexItem(_('Servers'), this.servers, this.server, x => (this.server = x), () => this.traffic),
+            proxy:    new DIndexItem(_('Proxy'), MODES, Mode[this._proxy], x => this._pfield._set('proxy', Mode[x])),
             sync:     new MenuItem(_('Sync Subscription'), this._subscribe.bind(this)),
-            sep:      new PopupMenu.PopupSeparatorMenuItem(),
-            settings: new IconItem('ss-subscriber-setting', [
-                ['emblem-system-symbolic',     () => { this._button.menu.close(); ExtensionUtils.openPrefs(); }],
-                ['view-refresh-symbolic',      () => { this._button.menu.close(); Util.spawnCommandLine(this.restart); }],
-                ['face-cool-symbolic',         () => this._field._set('lite_mode', !this._lite_mode)],
-                ['network-workgroup-symbolic', () => { this._button.menu.close(); Util.spawn(['gnome-control-center', 'network']); }],
-            ]),
+            sep1:     new PopupMenu.PopupSeparatorMenuItem(),
+            settings: new MenuItem(_('Settings'), () => ExtensionUtils.openPrefs()),
         };
         for(let p in this._menus) this._button.menu.addMenuItem(this._menus[p]);
-        this._checkLiteMode();
     }
 
     _subscribe() {
@@ -290,7 +232,7 @@ class Shadowsocks {
 }
 
 class Extension {
-    static {
+    constructor() {
         ExtensionUtils.initTranslations();
     }
 

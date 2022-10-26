@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnome-shell-extension-ss-subscriber 21\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-06 19:10+0800\n"
+"POT-Creation-Date: 2022-10-26 02:19+0800\n"
 "PO-Revision-Date: 2021-08-18 14:28+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -17,43 +17,51 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: extension.js:195
+#: extension.js:147
 msgid "Subscription link is missing."
 msgstr "未设置订阅链接。"
 
-#: extension.js:219
+#: extension.js:166
 msgid "Automatic"
 msgstr "自动"
 
-#: extension.js:219
+#: extension.js:166
 msgid "Manual"
 msgstr "手动"
 
-#: extension.js:219
+#: extension.js:166
 msgid "Disable"
 msgstr "禁用"
 
-#: extension.js:222
-msgid "Proxy: "
-msgstr "代理："
+#: extension.js:168
+msgid "Restart service"
+msgstr "重启服务"
 
-#: extension.js:223
-msgid "Airport: "
-msgstr "提供商："
+#: extension.js:170
+msgid "Servers"
+msgstr "服务"
 
-#: extension.js:224
+#: extension.js:171
+msgid "Proxy"
+msgstr "代理"
+
+#: extension.js:172
 msgid "Sync Subscription"
 msgstr "更新订阅"
 
-#: extension.js:238
+#: extension.js:174
+msgid "Settings"
+msgstr "设置"
+
+#: extension.js:180
 msgid "Start synchronizing."
 msgstr "开始同步。"
 
-#: extension.js:240
+#: extension.js:182
 msgid "Synchronized successfully."
 msgstr "订阅更新成功。"
 
-#: extension.js:248
+#: extension.js:190
 msgid "Config file is not set."
 msgstr "未设置配置文件。"
 
@@ -97,13 +105,16 @@ msgstr "地址端口"
 msgid "Addtional"
 msgstr "附加设置"
 
-#: ui.js:30
+#: ui.js:32
 msgid "Clear"
 msgstr "清除"
 
-#: ui.js:258
+#: ui.js:262
 msgid "Click or press ENTER to commit changes"
 msgstr "单击或按回车提交更改"
+
+#~ msgid "Airport"
+#~ msgstr "服务"
 
 #~ msgid "Error: Subscription content is empty."
 #~ msgstr "错误：订阅内容为空。"

@@ -5,7 +5,6 @@
 
 var Fields = {
     PROXY:    'mode',
-    LITE:     'lite-mode',
     ADDR:     'local-addr',
     PORT:     'local-port',
     FILE:     'config-file',
