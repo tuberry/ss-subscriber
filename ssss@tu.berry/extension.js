@@ -28,7 +28,7 @@ class Field {
     constructor(prop, gset, obj) {
         this.gset = typeof gset === 'string' ? new Gio.Settings({ schema: gset }) : gset;
         this.prop = prop;
-        this.bind(obj);
+        this.attach(obj);
     }
 
     _get(x) {
@@ -39,13 +39,13 @@ class Field {
         this.gset[`set_${this.prop[x][1]}`](this.prop[x][0], y);
     }
 
-    bind(a) {
+    attach(a) {
         let fs = Object.entries(this.prop);
         fs.forEach(([x]) => { a[x] = this._get(x); });
         this.gset.connectObject(...fs.flatMap(([x, [y]]) => [`changed::${y}`, () => { a[x] = this._get(x); }]), a);
     }
 
-    unbind(a) {
+    detach(a) {
         this.gset.disconnectObject(a);
     }
 }
@@ -65,18 +65,17 @@ class MenuItem extends PopupMenu.PopupMenuItem {
     }
 }
 
-class DIndexItem extends PopupMenu.PopupSubMenuMenuItem {
+class DRadioItem extends PopupMenu.PopupSubMenuMenuItem {
     static {
         GObject.registerClass(this);
     }
 
-    constructor(name, list, index, callback1, callback2) {
+    constructor(name, list, index, cb1, cb2) {
         super('');
         this._name = name;
-        this._call1 = callback1;
-        this._call2 = callback2 || (x => this._list[x]);
-        this.setList(list);
-        this.setSelected(index);
+        this._call1 = cb1;
+        this._call2 = cb2 || (x => this._list[x]);
+        this.setList(list, index);
     }
 
     setSelected(index) {
@@ -85,13 +84,14 @@ class DIndexItem extends PopupMenu.PopupSubMenuMenuItem {
         this._items.forEach((y, i) => y.setOrnament(index === i ? PopupMenu.Ornament.DOT : PopupMenu.Ornament.NONE));
     }
 
-    setList(list) {
+    setList(list, index) {
         let items = this._items;
         let diff = list.length - items.length;
         if(diff > 0) for(let a = 0; a < diff; a++) this.menu.addMenuItem(new MenuItem('', () => this._call1(items.length + a)));
         else if(diff < 0) for(let a = 0; a > diff; a--) items.at(a - 1).destroy();
         this._list = list;
         this._items.forEach((x, i) => x.setLabel(list[i]));
+        this.setSelected(index ?? this._index);
     }
 
     get _items() {
@@ -105,7 +105,7 @@ class Shadowsocks {
         this._bindSettings();
         this._addMenuItems();
         this._loadSubs().then(() => this._updateSubs()).catch(() => {
-            this._syncSubs().then(() => this._updateSubs()).catch(e => log(e.message));
+            this._syncSubs().then(() => this._updateSubs()).catch(noop);
         });
     }
 
@@ -124,8 +124,7 @@ class Shadowsocks {
     }
 
     _updateSubs() {
-        this._menus?.airport.setList(this.servers);
-        this._menus?.airport.setSelected(this.server);
+        this._menus?.airport.setList(this.servers, this.server);
     }
 
     get cache() {
@@ -147,7 +146,7 @@ class Shadowsocks {
         if(!this.subs_link) throw new Error(_('Subscription link is missing.'));
         let message = Soup.Message.new('GET', this.subs_link);
         let bytes = await new Soup.Session().send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
-        if(message.statusCode !== Soup.Status.OK) throw new Error(`Unexpected response: ${Soup.Status.get_phrase(message.statusCode)}`);
+        if(message.statusCode !== Soup.Status.OK) throw new Error(`Unexpected response: ${message.get_reason_phrase()}`);
         this.subs = JSON.parse(dc(GLib.base64_decode(dc(bytes.get_data().slice(6))))); // ignore 6-chars prefix
         let file = this.cache;
         await file.create_async(Gio.FileCreateFlags.NONE, GLib.PRIORITY_DEFAULT, null).catch(noop);
@@ -167,8 +166,8 @@ class Shadowsocks {
         this._menus = {
             restart:  new MenuItem(_('Restart service'), () => Util.spawnCommandLine(this.restart)),
             sep0:     new PopupMenu.PopupSeparatorMenuItem(),
-            airport:  new DIndexItem(_('Servers'), this.servers, this.server, x => (this.server = x), () => this.traffic),
-            proxy:    new DIndexItem(_('Proxy'), MODES, Mode[this._proxy], x => this._pfield._set('proxy', Mode[x])),
+            airport:  new DRadioItem(_('Servers'), this.servers, this.server, x => (this.server = x), () => this.traffic),
+            proxy:    new DRadioItem(_('Proxy'), MODES, Mode[this._proxy], x => this._pfield._set('proxy', Mode[x])),
             sync:     new MenuItem(_('Sync Subscription'), this._subscribe.bind(this)),
             sep1:     new PopupMenu.PopupSeparatorMenuItem(),
             settings: new MenuItem(_('Settings'), () => ExtensionUtils.openPrefs()),
@@ -225,7 +224,7 @@ class Shadowsocks {
     }
 
     destroy() {
-        ['_field', '_pfield'].forEach(x => this[x].unbind(this));
+        ['_field', '_pfield'].forEach(x => this[x].detach(this));
         this._button.destroy();
         this._button = null;
     }
