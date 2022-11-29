@@ -46,7 +46,7 @@ class SSSubscriberPrefs extends Adw.PreferencesGroup {
             ADDR:     ['text',  new Gtk.Entry({ placeholder_text: 'local_address', tooltip_text: _('Can be blank'), valign: Gtk.Align.CENTER })],
         };
         Object.entries(this._field).forEach(([x, [y, z]]) => this.gset.bind(Fields[x], z, y, Gio.SettingsBindFlags.DEFAULT));
-        this._restart_btn.connect('clicked', this._updateConfig.bind(this));
+        this._restart_btn.connect('clicked', () => this._updateConfig());
     }
 
     _buildUI() {
@@ -68,7 +68,7 @@ class SSSubscriberPrefs extends Adw.PreferencesGroup {
         let file = Gio.File.new_for_path(this.gset.get_string(Fields.FILE));
         if(!file) return;
         let conf = JSON.parse(new TextDecoder().decode((await file.load_contents_async(null))[0]));
-        let buffer = new TextEncoder().encode(JSON.stringify({ ...conf, ...this._localConf }, null, 2));
+        let buffer = new TextEncoder().encode(JSON.stringify({ ...conf, ...this._getLocal() }, null, 2));
         await file.replace_contents_async(buffer, null, false, Gio.FileCreateFlags.PRIVATE, null);
         let proc = new Gio.Subprocess({
             argv: GLib.shell_parse_argv(this.gset.get_string(Fields.RESTART))[1],
@@ -77,7 +77,7 @@ class SSSubscriberPrefs extends Adw.PreferencesGroup {
         proc.init(null);
     }
 
-    get _localConf() {
+    _getLocal() {
         return {
             timeout: this._field_local_time.value,
             local_port: this._field_local_port.value,
