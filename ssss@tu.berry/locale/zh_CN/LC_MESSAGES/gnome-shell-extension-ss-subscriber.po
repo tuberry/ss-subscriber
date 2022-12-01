@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnome-shell-extension-ss-subscriber 21\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-28 14:42+0800\n"
+"POT-Creation-Date: 2022-12-02 19:43+0800\n"
 "PO-Revision-Date: 2021-08-18 14:28+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -17,99 +17,99 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: extension.js:146
+#: extension.js:143
 msgid "Subscription link is missing."
 msgstr "未设置订阅链接。"
 
-#: extension.js:165
+#: extension.js:162
 msgid "Automatic"
 msgstr "自动"
 
-#: extension.js:165
+#: extension.js:162
 msgid "Manual"
 msgstr "手动"
 
-#: extension.js:165
+#: extension.js:162
 msgid "Disable"
 msgstr "禁用"
 
-#: extension.js:167
+#: extension.js:164
 msgid "Restart service"
 msgstr "重启服务"
 
-#: extension.js:169
+#: extension.js:166
 msgid "Servers"
 msgstr "服务"
 
-#: extension.js:170
+#: extension.js:167
 msgid "Proxy"
 msgstr "代理"
 
-#: extension.js:171
+#: extension.js:168
 msgid "Sync Subscription"
 msgstr "更新订阅"
 
-#: extension.js:173
+#: extension.js:170
 msgid "Settings"
 msgstr "设置"
 
-#: extension.js:179
+#: extension.js:176
 msgid "Start synchronizing."
 msgstr "开始同步。"
 
-#: extension.js:181
+#: extension.js:178
 msgid "Synchronized successfully."
 msgstr "订阅更新成功。"
 
-#: extension.js:189
+#: extension.js:186
 msgid "Config file is not set."
 msgstr "未设置配置文件。"
 
-#: prefs.js:38
-msgid "Resart"
-msgstr "重启"
-
-#: prefs.js:43
+#: prefs.js:41
 msgid "JSON format, can be blank"
 msgstr "JSON 格式，可以为空"
 
-#: prefs.js:44
+#: prefs.js:42
 msgid "Subscription link (SSD only)"
 msgstr "订阅链接(仅支持 SSD)"
 
-#: prefs.js:45
+#: prefs.js:43
 msgid "Command to restart"
 msgstr "重启命令"
 
-#: prefs.js:46
+#: prefs.js:44
 msgid "Can be blank"
 msgstr "可以为空"
 
-#: prefs.js:54
+#: prefs.js:46
+msgid "Restart"
+msgstr "重启"
+
+#: prefs.js:52
 msgid "Subs link"
 msgstr "订阅链接"
 
-#: prefs.js:55
+#: prefs.js:53
 msgid "Conf file"
 msgstr "配置文件"
 
-#: prefs.js:56
+#: prefs.js:54
 msgid "Timeout"
 msgstr "超时时间"
 
-#: prefs.js:57
+#: prefs.js:55
 msgid "Addr &amp; port"
 msgstr "地址端口"
 
-#: prefs.js:58
-msgid "Addtional"
+#: prefs.js:56
+msgid "Additional"
 msgstr "附加设置"
 
 #: ui.js:32
 msgid "Clear"
 msgstr "清除"
 
-#: ui.js:262
+#: ui.js:266
 msgid "Click or press ENTER to commit changes"
 msgstr "单击或按回车提交更改"
 

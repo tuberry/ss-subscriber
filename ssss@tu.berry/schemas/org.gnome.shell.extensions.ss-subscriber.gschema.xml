@@ -31,7 +31,7 @@
             <default>60</default>
             <summary>config file local timeout</summary>
         </key>
-        <key type="s" name="addtional-config">
+        <key type="s" name="additional-config">
             <default>""</default>
             <summary>additional configs</summary>
         </key>
