@@ -1,0 +1,139 @@
+# Dutch translations for gnome-shell-extension-ss-subscriber package.
+# Copyright (C) 2021 THE gnome-shell-extension-ss-subscriber'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the gnome-shell-extension-ss-subscriber package.
+# Automatically generated, 2021.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gnome-shell-extension-ss-subscriber\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-02-10 05:36+0800\n"
+"PO-Revision-Date: 2021-09-15 20:21+0200\n"
+"Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
+"Language-Team: none\n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ASCII\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.0\n"
+
+#: src/ui.js:32
+msgid "Clear"
+msgstr ""
+
+#: src/ui.js:266
+msgid "Click or press ENTER to commit changes"
+msgstr ""
+
+#: src/prefs.js:41
+msgid "JSON format, can be blank"
+msgstr "JSON-opmaak - mag blanco zijn"
+
+#: src/prefs.js:42
+msgid "Subscription link (SSD only)"
+msgstr "Abonnementslink (alleen SSD)"
+
+#: src/prefs.js:43
+msgid "Command to restart"
+msgstr "Herstartopdracht"
+
+#: src/prefs.js:44
+msgid "Can be blank"
+msgstr "Mag blanco zijn"
+
+#: src/prefs.js:46
+msgid "Restart"
+msgstr ""
+
+#: src/prefs.js:52
+msgid "Subs link"
+msgstr "Abonnementslink"
+
+#: src/prefs.js:53
+msgid "Conf file"
+msgstr "Configuratiebestand"
+
+#: src/prefs.js:54
+msgid "Timeout"
+msgstr "Time-out"
+
+#: src/prefs.js:55
+#, fuzzy
+msgid "Addr &amp; port"
+msgstr "Adres en poort"
+
+#: src/prefs.js:56
+#, fuzzy
+msgid "Additional"
+msgstr "Aanvullend"
+
+#: src/extension.js:143
+msgid "Subscription link is missing."
+msgstr "De abonnementslink ontbreekt."
+
+#: src/extension.js:162
+msgid "Automatic"
+msgstr "Automatisch"
+
+#: src/extension.js:162
+msgid "Manual"
+msgstr "Handmatig"
+
+#: src/extension.js:162
+msgid "Disable"
+msgstr "Uitschakelen"
+
+#: src/extension.js:164
+msgid "Restart service"
+msgstr ""
+
+#: src/extension.js:166
+msgid "Servers"
+msgstr ""
+
+#: src/extension.js:167
+#, fuzzy
+msgid "Proxy"
+msgstr "Proxy: "
+
+#: src/extension.js:168
+msgid "Sync Subscription"
+msgstr "Abonnement synchroniseren"
+
+#: src/extension.js:170
+msgid "Settings"
+msgstr ""
+
+#: src/extension.js:176
+msgid "Start synchronizing."
+msgstr "Synchroniseren"
+
+#: src/extension.js:178
+msgid "Synchronized successfully."
+msgstr "Het synchroniseren is voltooid."
+
+#: src/extension.js:186
+msgid "Config file is not set."
+msgstr "Er is geen configuratiebestand ingesteld."
+
+#~ msgid "Error: Subscription content is empty."
+#~ msgstr "Foutmelding: de abonnementsinhoud ontbreekt."
+
+#~ msgid "Airport: "
+#~ msgstr "Airport: "
+
+#~ msgid "Auto update subscription (not config file)"
+#~ msgstr "Abonnement automatisch bijwerken (niet het configuratiebestand)"
+
+#, javascript-format
+#~ msgid "See <span><a href=\"%s\">%s</a></span> for pre-steps to use it."
+#~ msgstr ""
+#~ "Zie <span><a href=\"%s\">%s</a></span> voor meer informatie over "
+#~ "voorbereidende stappen hieromtrent."
+
+#~ msgid "Apply"
+#~ msgstr "Toepassen"
+
+#~ msgid "Apply new config then restart service"
+#~ msgstr "Pas de nieuwe configuratie toe en herstart de dienst"

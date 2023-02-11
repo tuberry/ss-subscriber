@@ -15,7 +15,7 @@ var Fields = {
     SERVER:   'server-remarks',
     LINK:     'subscribe-link',
     RESTART:  'restart-command',
-    ADDITION: 'addtional-config',
+    ADDITION: 'additional-config',
 };
 
 var Field = class {

@@ -1,0 +1,15 @@
+$variant: 'dark';
+
+@import 'gnome-shell-sass/_colors';
+
+$pfx: 'ss-subscriber';
+
+.#{$pfx}-menu {
+    max-width: 25em;
+}
+
+.#{$pfx}-systray {
+    &:none { color: none; }
+    &:auto { color: mix($green_2, $blue_2, 50%); }
+    &:manual { color: mix($purple_1, $light_1, 80%);}
+}
