@@ -5,7 +5,7 @@ project(
 )
 
 NAME = 'Simple Subs'
-DESCRIPTION = 'Simple shadowsocks subscriber (SSD only), yet another proxy switcher for GNOME Shell\\n\\nFor support, please report any issues via the homepage link below.'
+INFO = 'Simple shadowsocks subscriber (SSD only), yet another proxy switcher for GNOME Shell'
 EID = meson.project_name().replace('gnome-shell-extension-', '')
 UUID = 'ssss@tu.berry'
 EGO = 'EGO=3073' / EID
