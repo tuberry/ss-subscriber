@@ -53,7 +53,7 @@ class SSSubscriberPrefs extends Adw.PreferencesGroup {
             [[_('Conf file')],       this._block.file],
             [[_('Timeout')],         this._block.time],
             [[_('Addr &amp; port')], this._block.addr, this._block.port],
-            [[_('Additional')],       this._block.add],
+            [[_('Additional')],      this._block.add],
             [this._block.restart,    [], this._block.exec],
         ].forEach(xs => this.add(new UI.PrefRow(...xs)));
     }

@@ -14,7 +14,7 @@ Simple shadowsocks subscriber (SSD only), yet another proxy switcher for GNOME S
 The latest and supported version should only work on the most current stable version of GNOME Shell.
 
 ```bash
-git clone https://github.com/tuberry/ss-subscriber.git && cd ss-subscriber
+git clone --recurse-submodules https://github.com/tuberry/ss-subscriber.git && cd ss-subscriber
 meson setup build && meson install -C build
 # meson setup build -Dtarget=system && meson install -C build # system-wide, default --prefix=/usr/local
 ```

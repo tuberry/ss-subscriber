@@ -1,7 +1,7 @@
 project(
   'gnome-shell-extension-ss-subscriber',
   license: 'GPL3+',
-  version: '43.rc',
+  version: '44.beta',
 )
 
 NAME = 'Simple Subs'
