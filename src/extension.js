@@ -152,7 +152,7 @@ class Shadowsocks {
 
     _addIndicator() {
         this._button = new PanelMenu.Button(0.5, Me.metadata.uuid);
-        this._button.menu.actor.add_style_class_name('ss-subscriber-menu');
+        this._button.menu.actor.add_style_class_name('ss-subscriber-menu app-menu');
         this._button.add_actor(new St.Icon({ gicon: genIcon('paper-plane-symbolic'), style_class: 'system-status-icon' }));
         this._button.add_style_class_name('ss-subscriber-systray');
         Main.panel.addToStatusArea(Me.metadata.uuid, this._button);

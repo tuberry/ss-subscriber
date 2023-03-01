@@ -34,7 +34,7 @@ class SSSubscriberPrefs extends Adw.PreferencesGroup {
     }
 
     _buildWidgets() {
-        this._block = new Block({
+        this._blk = new Block({
             port: [Fields.PORT,     'value', new UI.Spin(0, 65535, 1)],
             time: [Fields.TIME,     'value', new UI.Spin(0, 1000, 50)],
             file: [Fields.FILE,     'file',  new UI.File({ filter: 'application/json' })],
@@ -43,35 +43,35 @@ class SSSubscriberPrefs extends Adw.PreferencesGroup {
             exec: [Fields.RESTART,  'text',  new UI.LazyEntry('systemctl --user restart shadowsocks@ssss.service', _('Command to restart'))],
             addr: [Fields.ADDR,     'text',  new Gtk.Entry({ placeholder_text: 'local_address', tooltip_text: _('Can be blank'), valign: Gtk.Align.CENTER })],
         });
-        this._block.restart = new Gtk.Button({ label: _('Restart'), valign: Gtk.Align.CENTER });
-        this._block.restart.connect('clicked', () => this._updateConfig());
+        this._blk.restart = new Gtk.Button({ label: _('Restart'), valign: Gtk.Align.CENTER });
+        this._blk.restart.connect('clicked', () => this._updateConfig());
     }
 
     _buildUI() {
         [
-            [[_('Subs link')],       this._block.link],
-            [[_('Conf file')],       this._block.file],
-            [[_('Timeout')],         this._block.time],
-            [[_('Addr &amp; port')], this._block.addr, this._block.port],
-            [[_('Additional')],      this._block.add],
-            [this._block.restart,    [], this._block.exec],
+            [[_('Subs link')],       this._blk.link],
+            [[_('Conf file')],       this._blk.file],
+            [[_('Timeout')],         this._blk.time],
+            [[_('Addr &amp; port')], this._blk.addr, this._blk.port],
+            [[_('Additional')],      this._blk.add],
+            [this._blk.restart,      [], this._blk.exec],
         ].forEach(xs => this.add(new UI.PrefRow(...xs)));
     }
 
     async _updateConfig() {
-        let file = Gio.File.new_for_path(this._block.file.file);
+        let file = Gio.File.new_for_path(this._blk.file.file);
         if(!file) return;
         let conf = JSON.parse(new TextDecoder().decode((await file.load_contents_async(null))[0]));
         let buffer = new TextEncoder().encode(JSON.stringify({
             ...conf,
-            timeout: this._block.time.value,
-            local_port: this._block.port.value,
-            local_address: this._block.addr.text || undefined,
-            ...JSON.parse(this._block.add.text || '{}'),
+            timeout: this._blk.time.value,
+            local_port: this._blk.port.value,
+            local_address: this._blk.addr.text || undefined,
+            ...JSON.parse(this._blk.add.text || '{}'),
         }, null, 2));
         await file.replace_contents_async(buffer, null, false, Gio.FileCreateFlags.PRIVATE, null);
         let proc = new Gio.Subprocess({
-            argv: GLib.shell_parse_argv(this._block.exec.text)[1],
+            argv: GLib.shell_parse_argv(this._blk.exec.text)[1],
             flags: Gio.SubprocessFlags.STDOUT_SILENCE | Gio.SubprocessFlags.STDERR_SILENCE,
         });
         proc.init(null);
