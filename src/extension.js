@@ -10,18 +10,14 @@ const PopupMenu = imports.ui.popupMenu;
 const { GLib, GObject, Soup, Gio, St } = imports.gi;
 
 const ExtensionUtils = imports.misc.extensionUtils;
-const _ = ExtensionUtils.gettext;
 const Me = ExtensionUtils.getCurrentExtension();
-const { Fields, Field } = Me.imports.fields;
-const Mode = { auto: 0, manual: 1, none: 2, 0: 'auto', 1: 'manual', 2: 'none' };
+const { Fulu, Extension, Symbiont, DEventEmitter } = Me.imports.fubar;
+const { _, noop, fl, dc, fwrite, fread } = Me.imports.util;
+const { Field } = Me.imports.const;
 
-const noop = () => {};
-const dc = x => new TextDecoder().decode(x);
-const ec = x => new TextEncoder().encode(x);
 const genIcon = x => Gio.Icon.new_for_string(Me.dir.get_child('icons').get_child(`${x}.svg`).get_path());
 
-Gio._promisify(Gio.File.prototype, 'load_contents_async');
-Gio._promisify(Gio.File.prototype, 'replace_contents_async');
+const Mode = { auto: 0, manual: 1, none: 2, 0: 'auto', 1: 'manual', 2: 'none' };
 
 class MenuItem extends PopupMenu.PopupMenuItem {
     static {
@@ -68,28 +64,30 @@ class DRadioItem extends PopupMenu.PopupSubMenuMenuItem {
     }
 }
 
-class Shadowsocks {
+class SimpleSubs extends DEventEmitter {
     constructor() {
+        super();
         this._addIndicator();
         this._bindSettings();
         this._addMenuItems();
         this._loadSubs().then(() => this._updateSubs()).catch(() => {
             this._syncSubs().then(() => this._updateSubs()).catch(noop);
         });
+        new Symbiont(() => { this._button.destroy(); this._button = null; }, this);
     }
 
     _bindSettings() {
-        this._field = new Field({
-            restart:     [Fields.RESTART,  'string'],
-            filename:    [Fields.FILE,     'string'],
-            additions:   [Fields.ADDITION, 'string'],
-            subs_link:   [Fields.LINK,     'string'],
-            local_addr:  [Fields.ADDR,     'string'],
-            local_port:  [Fields.PORT,     'uint'],
-            local_time:  [Fields.TIME,     'uint'],
-            server_name: [Fields.SERVER,   'string'],
+        this._fulu = new Fulu({
+            restart:     [Field.RESTART,  'string'],
+            filename:    [Field.FILE,     'string'],
+            additions:   [Field.ADDITION, 'string'],
+            subs_link:   [Field.LINK,     'string'],
+            local_addr:  [Field.ADDR,     'string'],
+            local_port:  [Field.PORT,     'uint'],
+            local_time:  [Field.TIME,     'uint'],
+            server_name: [Field.SERVER,   'string'],
         }, ExtensionUtils.getSettings(), this);
-        this._pfield = new Field({ proxy: [Fields.PROXY, 'string'] }, 'org.gnome.system.proxy', this);
+        this._fulu_p = new Fulu({ proxy: [Field.PROXY, 'string'] }, 'org.gnome.system.proxy', this);
     }
 
     set proxy(proxy) {
@@ -127,7 +125,7 @@ class Shadowsocks {
     }
 
     getCacheFile() {
-        return Gio.File.new_for_path(GLib.build_filenamev([GLib.path_get_dirname(this.filename), 'ssss-cache.json']));
+        return fl(GLib.path_get_dirname(this.filename), 'ssss-cache.json');
     }
 
     _updateSubs() {
@@ -135,19 +133,17 @@ class Shadowsocks {
     }
 
     async _loadSubs() {
-        let [data] = await this.getCacheFile().load_contents_async(null);
+        let [data] = await fread(this.getCacheFile());
         this.subs = JSON.parse(dc(data));
     }
 
     async _syncSubs() {
         if(!this.subs_link) throw new Error(_('Subscription link is missing.'));
-        let message = Soup.Message.new('GET', this.subs_link);
-        let bytes = await new Soup.Session().send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
-        if(message.statusCode !== Soup.Status.OK) throw new Error(`Unexpected response: ${message.get_reason_phrase()}`);
+        let msg = Soup.Message.new('GET', this.subs_link);
+        let bytes = await new Soup.Session().send_and_read_async(msg, GLib.PRIORITY_DEFAULT, null);
+        if(msg.statusCode !== Soup.Status.OK) throw new Error(`Unexpected response: ${msg.get_reason_phrase()}`);
         this.subs = JSON.parse(dc(GLib.base64_decode(dc(bytes.get_data().slice(6))))); // ignore 6-chars prefix
-        let file = this.getCacheFile();
-        await file.touch_async().catch(noop);
-        await file.replace_contents_async(ec(JSON.stringify(this.subs, null, 2)), null, false, Gio.FileCreateFlags.PRIVATE, null);
+        await fwrite(this.getCacheFile(), JSON.stringify(this.subs, null, 2));
     }
 
     _addIndicator() {
@@ -187,33 +183,12 @@ class Shadowsocks {
         this.setf('server_name', config.remarks);
         let { encryption: method, port: server_port, ...others } = config,
             { local_port, local_time: timeout, _local_addr: local_address } = this,
-            content = ec(JSON.stringify({ ...others, server_port, method, local_port, local_address, timeout, ...this._additions }, null, 2));
-        await Gio.File.new_for_path(this.filename).replace_contents_async(content, null, false, Gio.FileCreateFlags.PRIVATE, null);
+            json = JSON.stringify({ ...others, server_port, method, local_port, local_address, timeout, ...this._additions }, null, 2);
+        await fwrite(fl(this.filename), json);
         Util.spawnCommandLine(this.restart);
-    }
-
-    destroy() {
-        ['_field', '_pfield'].forEach(x => this[x].detach(this));
-        this._button.destroy();
-        this._button = null;
-    }
-}
-
-class Extension {
-    constructor() {
-        ExtensionUtils.initTranslations();
-    }
-
-    enable() {
-        this._ext = new Shadowsocks();
-    }
-
-    disable() {
-        this._ext.destroy();
-        this._ext = null;
     }
 }
 
 function init() {
-    return new Extension();
+    return new Extension(SimpleSubs);
 }
